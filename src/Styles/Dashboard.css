@@ -1,0 +1,33 @@
+.main-content .bg-light h5,
+.main-content .bg-light p {
+    text-align: left !important;
+}
+.name{
+    color: #2C3690;
+}
+.btn{
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 18px;
+}
+.btn1{
+    color: #fff;
+    background-color: #2C3690;
+}
+.btn2{
+    background-color: none;
+    border: 1px solid #e2e8f0;
+    color: black;
+}
+.btn2:hover{
+    background-color: #f5f5f5;
+    border: 1px solid #e2e8f0;
+    color: #1a1a2e;
+}
+.btn1:hover{
+    background-color: #222b7a;
+    color: #fff;
+}
+.data{
+    padding-bottom: 20px;
+}

@@ -1,0 +1,9 @@
+.table th {
+    font-weight: 500;
+    color: #a3a2a2;
+}
+
+.table td {
+    color: #a3a2a2;
+    padding-top: 40px;
+}

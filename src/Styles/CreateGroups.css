@@ -1,0 +1,31 @@
+.main{
+    margin-left: 50px;
+}
+.create-groups-container{
+    border: 1px solid #e5e7eb;
+    max-width: 800px
+}
+.create-groups-container input {
+    border: 1px solid #D3D3D3;
+}
+
+.create-groups-container input:focus {
+    outline: none;
+    box-shadow: none;
+}
+.btn1{
+    background-color: #2C3690;
+}
+.btn-outline-secondary{
+    background-color: #f5f5f5;
+    border: 1px solid #e2e8f0;
+    color: #1a1a2e;
+}
+.btn-outline-secondary:hover{
+    background-color: #f5f5f5;
+    border: 1px solid #e2e8f0;
+    color: #1a1a2e;
+}
+.button-group {
+    gap: 30%;
+}
