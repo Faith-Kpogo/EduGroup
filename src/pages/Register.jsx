@@ -107,7 +107,7 @@ function Signup() {
             <div className="invalid-feedback">{errors.confirmPassword}</div>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100">Sign Up</button>
+          <button type="submit" className="btn mainbtn w-100">Sign Up</button>
         </form>
 
         <p className="text-center mt-3">

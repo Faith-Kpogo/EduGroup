@@ -11,10 +11,6 @@
 .login-container a{
     color: #2C3690;
 }
-.login-container button{
-    background-color: #2C3690;
-    border: 0;
-}
 .login-container .sign{
     text-decoration: none;
 }

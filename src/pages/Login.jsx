@@ -63,7 +63,7 @@ const Login = () => {
           <div className="mb-3 text-end">
             <a href="#" className="text-decoration-none">Forgot password?</a>
           </div>
-          <button type="submit" className="btn btn-primary w-100">Login</button>
+          <button type="submit" className="btn mainbtn w-100">Login</button>
           <p className="text-center mt-3">
             Don't have an account? <Link className='sign' to="/Signup">Sign up</Link>
           </p>

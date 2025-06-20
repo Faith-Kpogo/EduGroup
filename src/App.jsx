@@ -8,6 +8,7 @@ import CreateGroups from './pages/CreateGroups';
 import '../src/App.css'
 import GroupsHistory from './pages/GroupsHistory';
 import Settings from './pages/Settings';
+import GroupDetails from './pages/GroupDetails';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/creategroups" element={<CreateGroups />} />
         <Route path="/groupshistory" element={<GroupsHistory />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/groupdetails" element={<GroupDetails />} />
       </Routes>
     </Router>
   );

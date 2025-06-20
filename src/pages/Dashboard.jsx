@@ -1,13 +1,18 @@
-import React from 'react';
+import React , {useState} from 'react';
 import Logo from '../components/Logo';
 import "../Styles/Dashboard.css"
 import Sidebar from '../components/Sidebar';
 import { Plus, Upload, Download, ListTodo } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Table from '../components/Table';
+import AddTaskModal from '../components/AddTask';
+
 
 
 const Dashboard = () => {
+
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+
   return (
     <div className="d-flex">
       <Sidebar />
@@ -36,10 +41,10 @@ const Dashboard = () => {
         </div>
 
         <div className="d-flex gap-2 mb-4">
-          <Link className="text-decoration-none" to="/creategroups"><button className="btn btn1 d-flex align-items-center gap-2 "><Plus size={18} />Create New Group</button></Link>
+          <Link className="text-decoration-none" to="/creategroups"><button className="btn mainbtn d-flex align-items-center gap-2 "><Plus size={18} />Create New Group</button></Link>
           <button className="btn btn2 d-flex align-items-center gap-2"><Upload size={18} />Import Student Data</button>
           <button className="btn btn2 d-flex align-items-center gap-2"><Download size={18} />Export Data</button>
-          <button className="btn btn1 d-flex align-items-center gap-2"><ListTodo size={18} />Add Task</button>
+          <button className="btn mainbtn d-flex align-items-center gap-2" onClick={() => setShowAddTaskModal(true)}><ListTodo size={18} />Add Task</button>
         </div>
 
         <div className="bg-white p-4 rounded shadow-sm">
@@ -54,6 +59,8 @@ const Dashboard = () => {
           <p className="mb-0">No pending tasks</p>
         </div>
       </div>
+      <AddTaskModal isOpen={showAddTaskModal} onClose={() => setShowAddTaskModal(false)} />
+
     </div>
   );
 };

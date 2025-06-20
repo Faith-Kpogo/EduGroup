@@ -86,7 +86,7 @@ const CreateGroups = () => {
                 <button className="btn btn-outline-secondary me-2">
                 <Upload size={16} className="me-1" /> Upload Student Data
                 </button>
-                <button className="btn btn1">
+                <button className="btn mainbtn">
                 Generate groups
                 </button>
             </div>

@@ -27,7 +27,7 @@ const GroupsHistory = () => {
           <select className="form-select" style={{ maxWidth: '150px' }}>
             <option>All Statuses</option>
           </select>
-          <button className="btn export ms-auto d-flex align-items-center gap-2">
+          <button className="btn mainbtn ms-auto d-flex align-items-center gap-2">
             <Download size={18} />Export
           </button>
         </div>

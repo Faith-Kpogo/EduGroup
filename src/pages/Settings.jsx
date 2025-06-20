@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import '../Styles/Settings.css'; // Optional for extra styling
 import Sidebar from '../components/Sidebar';
+import ChangePasswordModal from '../components/ChangePassword';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   return (
     <div className="d-flex gap-3">
@@ -48,13 +51,12 @@ const Settings = () => {
             <label className="fw-semibold pb-3">Email address</label>
             <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
               <span>youremail@gmail.com</span>
-              <button className="btn btn-link p-0">Edit</button>
             </div>
           </div>
 
           <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 pt-3">
             <label className="fw-semibold py-3">Password</label>
-              <button className="btn btn-link p-0">Change</button>
+              <button className="btn btn-link p-0" onClick={() => setShowPasswordModal(true)}>Change</button>
           </div>
         </div>
       )}
@@ -97,7 +99,14 @@ const Settings = () => {
         </div>
       )}
     </div>
+
+    <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </div>
+
+    
   );
   
 };

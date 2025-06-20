@@ -35,7 +35,7 @@ function ChooseDepartment() {
           <option value="IT">Information Technology</option>
           <option value="CS">Computer Science</option>
         </select>
-        <button className="btn btn-primary w-100" onClick={handleContinue}>
+        <button className="btn mainbtn w-100" onClick={handleContinue}>
           Continue
         </button>
       </div>
