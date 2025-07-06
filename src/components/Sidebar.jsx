@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import '../Styles/Sidebar.css';
-import { User, LogOut } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, History, Settings, X } from 'lucide-react';
 import Logo from './Logo';
 
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
 
   const [showPopup, setShowPopup] = useState(false);
   const popupRef = useRef(null);
@@ -17,6 +17,9 @@ const Sidebar = () => {
   const handleLogout = () => {
     console.log('Logging out...');
   };
+  const userName = localStorage.getItem('userName');
+  const firstName = userName ? userName.split(' ')[0] : '';
+  const firstInitial = firstName ? firstName[0].toUpperCase() : '';
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -31,28 +34,32 @@ const Sidebar = () => {
 
 
   return (
-    <div className="sidebar p-3 vh-100 d-flex flex-column justify-content-between">
+    <div className={`sidebar p-3 vh-100 d-flex flex-column justify-content-between${isOpen ? ' open' : ''}`}
+      style={isOpen === false ? { display: 'none' } : {}}>
+      {typeof onClose === 'function' && (
+        <button className="close-btn d-md-none" onClick={onClose} aria-label="Close Sidebar"> <X /></button>
+      )}
       <div>
       <Logo />
       <ul className="list-unstyled sidebar-links">
       <li className="mb-2">
           <NavLink to="/dashboard" end className={({ isActive }) => isActive ? 'active-link' : 'text-decoration-none'}>
-            Dashboard
+            <LayoutDashboard size={18} className="me-2" /> Dashboard
           </NavLink>
         </li>
         <li className="mb-2">
           <NavLink to="/creategroups" className={({ isActive }) => isActive ? 'active-link' : 'text-decoration-none'}>
-            Create Groups
+            <Users size={18} className="me-2" /> Create Groups
           </NavLink>
         </li>
         <li className="mb-2">
           <NavLink to="/groupshistory" className={({ isActive }) => isActive ? 'active-link' : 'text-decoration-none'}>
-            Groups History
+            <History size={18} className="me-2" /> Groups History
           </NavLink>
         </li>
         <li className="mb-2">
           <NavLink to="/settings" className={({ isActive }) => isActive ? 'active-link' : 'text-decoration-none'}>
-            Settings
+            <Settings size={18} className="me-2" /> Settings
           </NavLink>
         </li>
       </ul>
@@ -64,8 +71,20 @@ const Sidebar = () => {
           style={{ cursor: 'pointer' }}
           onClick={togglePopup}
         >
-          <User size={20} className="me-2" />
-          <span className="fw-medium">John Doe</span>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: '#2C3690',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 600,
+            fontSize: '1.1rem',
+            marginRight: 10
+          }}>{firstInitial}</div>
+          <span className="fw-medium">{firstName}</span>
         </div>
 
         {showPopup && (

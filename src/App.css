@@ -12,10 +12,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* Lighten the overlay for transparency */
     background-color: rgba(0, 0, 0, 0.2);
-    /* 20% black = subtle */
     z-index: 999;
     backdrop-filter: blur(1px);
-    /* Optional: adds soft blur effect */
+}
+
+select:focus{
+    outline: none!important;
+    box-shadow: none!important; 
 }

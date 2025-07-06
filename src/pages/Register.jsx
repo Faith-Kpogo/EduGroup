@@ -1,111 +1,163 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, User } from 'lucide-react';
 import Logo from '../components/Logo';
 import '../Styles/Login.css'
 
 function Signup() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agree, setAgree] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   const navigate = useNavigate();
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!agree) {
+      newErrors.agree = 'You must agree to the terms and conditions';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    const newErrors = {};
-    if (!form.name) newErrors.name = 'Name is required';
-    if (!form.email) newErrors.email = 'Email is required';
-    if (!form.password) newErrors.password = 'Password is required';
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-  
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-  
-    // Store the user in localStorage (TEMPORARY)
-    const user = {
-      name: form.name,
-      email: form.email,
-      password: form.password, // NOTE: Don't do this in production!
-    };
-  
 
-    
+    if (!validate()) return;
+
+    const user = {
+      name: `${firstName} ${lastName}`.trim(),
+      email,
+      password,
+    };
 
     localStorage.setItem('tempUser', JSON.stringify(user));
+    localStorage.setItem('userName', user.name); // Update userName immediately on signup
     navigate('/department');
   };
-  
 
   return (
-    <div className="login-container container d-flex align-items-center justify-content-center min-vh-100">
+    <div className="login-container container d-flex align-items-center justify-content-center min-vh-100 py-5">
       <div className="card p-4 shadow" style={{ width: '100%', maxWidth: '400px' }}>
         <Logo />
         <h3 className="text-center mb-3">Create Account</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label>Name</label>
-            <input
-              type="text"
-              className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-            />
-            <div className="invalid-feedback">{errors.name}</div>
+            <div className="row g-2 align-items-center">
+              <div className="col-6">
+                <label className="form-label d-flex align-items-center gap-2">
+                  <User size={18} /> First Name
+                </label>
+                <input
+                  type="text"
+                  className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                <div className="invalid-feedback">{errors.firstName}</div>
+              </div>
+              <div className="col-6">
+                <label className="form-label d-flex align-items-center gap-2">
+                  <User size={18} /> Last Name
+                </label>
+                <input
+                  type="text"
+                  className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+                <div className="invalid-feedback">{errors.lastName}</div>
+              </div>
+            </div>
           </div>
 
           <div className="mb-3">
-            <label>Email</label>
+            <label className="form-label d-flex align-items-center gap-2">
+              <Mail size={18} /> Email
+            </label>
             <input
               type="email"
               className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-              name="email"
-              value={form.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <div className="invalid-feedback">{errors.email}</div>
           </div>
 
           <div className="mb-3">
-            <label>Password</label>
+            <label className="form-label d-flex align-items-center gap-2">
+              <Lock size={18} /> Password
+            </label>
             <input
               type="password"
               className={`form-control ${errors.password ? 'is-invalid' : ''}`}
-              name="password"
-              value={form.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <div className="invalid-feedback">{errors.password}</div>
           </div>
 
           <div className="mb-3">
-            <label>Confirm Password</label>
+            <label className="form-label d-flex align-items-center gap-2">
+              <Lock size={18} /> Confirm Password
+            </label>
             <input
               type="password"
               className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <div className="invalid-feedback">{errors.confirmPassword}</div>
           </div>
+          <div className="mb-3">
+            <div className={`form-check d-flex align-items-start ${errors.agree ? 'is-invalid' : ''}`} style={{marginLeft: 0, paddingLeft: 0}}>
+              <input
+                type="checkbox"
+                className="mt-1"
+                id="agreeCheck"
+                checked={agree}
+                onChange={e => setAgree(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#4f46e5', marginLeft: 0 }}
+              />
+              <label className="form-check-label ms-2" htmlFor="agreeCheck" style={{marginLeft: '0.5rem'}}>
+                I have read and agree to the <a href="#" className="text-decoration-underline">Terms and Conditions</a> and <a href="#" className="text-decoration-underline">Privacy Policy</a>.
+              </label>
+            </div>
+            {errors.agree && (
+              <div className="text-danger small mt-1">{errors.agree}</div>
+            )}
+          </div>
+
 
           <button type="submit" className="btn mainbtn w-100">Sign Up</button>
         </form>

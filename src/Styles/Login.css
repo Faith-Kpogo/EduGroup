@@ -1,16 +1,128 @@
-.login-container h4{
-    font-size: 32px;
+.login-container {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  padding: 2vw 1vw;
+  box-sizing: border-box;
 }
-.login-container input{
-    border: 1px solid #D3D3D3;
+.login-container h4 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.5rem;
 }
-.login-container input:focus{
-    outline: none;
-    box-shadow: none;
+.login-container label.form-label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
 }
-.login-container a{
-    color: #2C3690;
+.login-container input {
+  border: 1.5px solid #D3D3D3;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.2rem;
+  background: #f8f9fa;
+  color: #23235b;
+  transition: border-color 0.2s;
 }
-.login-container .sign{
-    text-decoration: none;
+.login-container input:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: #2C3690;
+  background: #fff;
+}
+.login-container .invalid-feedback {
+  font-size: 0.95rem;
+  color: #d32f2f;
+  margin-top: 0.1rem;
+}
+.login-container a {
+  color: #2C3690;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.login-container .sign {
+  text-decoration: none;
+  color: #2C3690;
+  font-weight: 600;
+}
+.login-container .card {
+  width: 100%;
+  max-width: 400px;
+  min-width: 0;
+  border-radius: 1.2rem;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(44,54,144,0.08);
+  padding: 2rem 1.5rem;
+}
+.login-container .mainbtn {
+  background: linear-gradient(90deg, #2C3690 60%, #4e54c8 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(44,54,144,0.08);
+  border: none;
+  transition: background 0.2s;
+}
+.login-container .mainbtn:hover {
+  background: linear-gradient(90deg, #23235b 60%, #2C3690 100%);
+}
+.login-container .mb-3 {
+  margin-bottom: 1.3rem !important;
+}
+.login-container form {
+  margin-top: 1rem;
+}
+.login-container p {
+  font-size: 1rem;
+  color: #23235b;
+  margin-top: 1.2rem;
+}
+@media (max-width: 600px) {
+  .login-container {
+    padding: 4vw 2vw;
+  }
+  .login-container .card {
+    max-width: 98vw;
+    padding: 1.2rem 0.7rem;
+  }
+  .login-container h4 {
+    font-size: 1.4rem;
+  }
+  .login-container label.form-label {
+    font-size: 0.98rem;
+  }
+  .login-container input {
+    font-size: 0.98rem;
+    padding: 0.6rem 0.7rem;
+  }
+  .login-container .mainbtn {
+    font-size: 1rem;
+    padding: 0.6rem 0;
+  }
+  .login-container p {
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 400px) {
+  .login-container .card {
+    max-width: 100vw;
+    padding: 0.7rem 0.2rem;
+  }
+  .login-container h4 {
+    font-size: 1.2rem;
+  }
+  .login-container input {
+    font-size: 0.92rem;
+    padding: 0.5rem 0.5rem;
+  }
 }

@@ -41,7 +41,7 @@ const GroupDetails = () => {
         </div>
 
         <div className="d-flex gap-2">
-          <button className="btn btn-outline-secondary">
+          <button className="btn mainbtn">
             <Edit size={16} className="me-1" /> Edit
           </button>
           <button className="btn btn-outline-secondary">

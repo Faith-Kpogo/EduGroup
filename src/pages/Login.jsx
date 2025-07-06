@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate  } from 'react-router-dom';
+import { Mail, Lock } from 'lucide-react';
 import Logo from '../components/Logo';
 import  '../Styles/Login.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,9 +12,31 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  const validate = () => {
+    const newErrors = {};
+  
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email is invalid';
+    }
+  
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+  
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
+  
+    if (!validate()) return; // ❌ Don't proceed if validation fails
   
     const storedUser = JSON.parse(localStorage.getItem('tempUser'));
   
@@ -26,35 +49,41 @@ const Login = () => {
       email === storedUser.email &&
       password === storedUser.password
     ) {
+      localStorage.setItem('userName', storedUser.name);
       navigate('/dashboard');
     } else {
       alert('Invalid email or password');
     }
   };
   
+  
 
 
   return (
-    <div className="login-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div className="login-container d-flex justify-content-center align-items-center min-vh-100 bg-light ">
       <div className="card shadow p-4" style={{ width: "100%", maxWidth: "400px" }}>
         <Logo />
         <h4 className="text-center mb-4">Login</h4>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label>Email</label>
+            <label className="form-label d-flex align-items-center gap-2">
+              <Mail size={18} /> Email
+            </label>
             <input
               type="email"
-              className={`form-control ${errors.email && 'is-invalid'}`}
+              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             <div className="invalid-feedback">{errors.email}</div>
           </div>
           <div className="mb-3">
-            <label>Password</label>
+            <label className="form-label d-flex align-items-center gap-2">
+              <Lock size={18} /> Password
+            </label>
             <input
               type="password"
-              className={`form-control ${errors.password && 'is-invalid'}`}
+              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

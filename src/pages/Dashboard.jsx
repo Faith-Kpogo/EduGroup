@@ -1,8 +1,8 @@
-import React , {useState} from 'react';
+import React, { useState } from 'react';
 import Logo from '../components/Logo';
 import "../Styles/Dashboard.css"
 import Sidebar from '../components/Sidebar';
-import { Plus, Upload, Download, ListTodo } from 'lucide-react';
+import { Plus, Upload, Download, ListTodo, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Table from '../components/Table';
 import AddTaskModal from '../components/AddTask';
@@ -12,12 +12,33 @@ import AddTaskModal from '../components/AddTask';
 const Dashboard = () => {
 
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const userName = localStorage.getItem('userName');
+
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      setSidebarOpen(window.innerWidth > 900);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="d-flex">
-      <Sidebar />
+      <button
+        className="btn btn-light position-fixed top-0 start-0 m-2 z-index-1100 d-md-none d-block"
+        style={{ zIndex: 1300, borderRadius: '50%', width: 40, height: 40, display: windowWidth <= 900 && !sidebarOpen ? 'flex' : 'none', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open Sidebar"
+      >
+        <Menu size={24} />
+      </button>
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-grow-1 p-4 main-content">
-        <h3>Welcome, <span className="name">Username</span></h3>
+        <h3>Welcome, <span className="name">{userName}</span></h3>
 
         <div className="data row my-4">
           <div className="col-md-4">

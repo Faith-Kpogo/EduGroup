@@ -49,7 +49,7 @@ const AddTaskModal = ({ isOpen, onClose }) => {
           <button className="btn btn-outline-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn btn-primary">Save Task</button>
+          <button className="btn mainbtn">Save Task</button>
         </div>
       </div>
     </div>

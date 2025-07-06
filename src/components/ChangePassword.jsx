@@ -28,7 +28,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         <div className="d-flex justify-content-end gap-2">
           <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary">Save</button>
+          <button className="btn mainbtn">Save</button>
         </div>
       </div>
     </div>
