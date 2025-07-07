@@ -5,15 +5,18 @@
 .name{
     color: #2C3690;
 }
-.btn{
-    font-size: 14px;
-    font-weight: 500;
-    padding: 8px 18px;
+.btn {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px auto;
+  justify-content: center;
+  white-space: nowrap;
 }
-.btn2{
-    background-color: none;
-    border: 1px solid #e2e8f0;
-    color: black;
+
+.btn2 {
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+  color: black;
 }
 .btn2:hover{
     background-color: #f5f5f5;
@@ -30,27 +33,37 @@
   border-right: 1px solid #e2e8f0;
   min-height: 100vh;
 }
+.d-flex.gap-2.mb-4 {
+  flex-wrap: wrap;
+  gap: auto !important;
+}
+.d-flex.gap-2.mb-4 .btn {
+  min-width: 170px;
+  margin-bottom: 0.5rem;
+}
+.data.row {
+  gap: 1rem 0;
+}
+.bg-white.p-4.rounded.shadow-sm {
+  overflow-x: auto;
+  padding: 1.2rem 0.7rem;
+}
+.mt-3.bg-light.p-3.rounded {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+.z-index-1100 {
+  z-index: 1100;
+}
+.sidebar-header .d-flex {
+  margin-bottom: 0 !important;
+}
+
+
+
+
 @media (max-width: 900px) {
   .sidebar {
-    display: none !important;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1200;
-    height: 100vh;
-    box-shadow: 2px 0 8px rgba(44,54,144,0.08);
-    background: #fff;
-    min-width: 220px;
-    max-width: 80vw;
-    transform: translateX(-100%);
-    transition: transform 0.3s;
-  }
-  .sidebar.open {
-    display: flex !important;
-    transform: translateX(0);
-  }
-  .sidebar .sidebar-links span,
-  .sidebar .fw-medium {
     display: none !important;
   }
   .sidebar .close-btn {
@@ -64,65 +77,95 @@
     color: #2C3690;
     z-index: 1301;
   }
-}
-@media (max-width: 900px) {
+  .sidebar-right {
+    transform: translateX(100%);
+    opacity: 0;
+    max-width: 100vw;
+  }
+  .sidebar-right.open {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  .sidebar-right {
+    position: fixed;
+    padding: 20px 0 0 10px;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 250px; /* Adjust as needed */
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+    opacity: 1;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    height: 56px;
+  }
+  .sidebar-header .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #2C3690;
+    cursor: pointer;
+    margin-left: 1rem;
+    line-height: 1;
+    padding: 0;
+    height: 40px;
+    width: 40px;
+  }
+  .sidebar-content {
+    flex: 1 1 auto;
+  }
+  .sidebar-profile {
+    flex-shrink: 0;
+    padding-bottom: .7rem;
+    border-top: 1px solid #eee;
+  }
+  .sidebar-profile .position-absolute {
+    bottom: 60px !important; 
+  }
+  .sidebar-right .sidebar-links li,
+  .sidebar-right .sidebar-links .nav-link,
+  .sidebar-right .sidebar-links a {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }  
   .main-content {
     margin-left: 0 !important;
     padding: 1.2rem 1vw;
   }
+  .data.row {
+    flex-direction: row;
+    gap: 0.5rem 0;
+  }
 }
+
 @media (max-width: 600px) {
   .main-content {
     padding: 0.7rem 0.2rem;
   }
-}
-.data.row {
-  gap: 1rem 0;
-}
-@media (max-width: 900px) {
-  .data.row {
-    flex-direction: column !important;
-    gap: 0.7rem 0;
-  }
-  .data .col-md-4 {
-    max-width: 100%;
-    flex: 0 0 100%;
-  }
-}
-.d-flex.gap-2.mb-4 {
-  flex-wrap: wrap;
-  gap: 0.7rem !important;
-}
-.d-flex.gap-2.mb-4 .btn {
-  min-width: 170px;
-  margin-bottom: 0.5rem;
-}
-@media (max-width: 600px) {
   .d-flex.gap-2.mb-4 .btn {
     min-width: 120px;
     font-size: 13px;
     padding: 7px 10px;
   }
-}
-.bg-white.p-4.rounded.shadow-sm {
-  overflow-x: auto;
-  padding: 1.2rem 0.7rem;
-}
-@media (max-width: 600px) {
   .bg-white.p-4.rounded.shadow-sm {
     padding: 0.7rem 0.2rem;
   }
-}
-.mt-3.bg-light.p-3.rounded {
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-}
-@media (max-width: 600px) {
   .mt-3.bg-light.p-3.rounded {
     font-size: 0.95rem;
     padding: 0.7rem 0.3rem;
   }
 }
-.z-index-1100 {
-  z-index: 1100;
-}
+
