@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../Styles/Settings.css'; // Optional for extra styling
 import Sidebar from '../components/Sidebar';
 import ChangePasswordModal from '../components/ChangePassword';
+import MainLayout from '../components/MainLayout';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');
@@ -9,8 +10,8 @@ const Settings = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   return (
+    <MainLayout>
     <div className="d-flex gap-3">
-        <Sidebar />
     <div className="flex-grow-1 p-4">
       <h2 className="fw-bold mb-3">
         Settings
@@ -105,8 +106,7 @@ const Settings = () => {
         onClose={() => setShowPasswordModal(false)}
       />
     </div>
-
-    
+    </MainLayout>
   );
   
 };

@@ -13,7 +13,6 @@
     color: #737373;
     font-size: 16px;
 }
-
 .sidebar-links li a:not(.active-link):hover {
     background-color: #2c36902c;
     color: #1a1a2e;
@@ -30,5 +29,5 @@
     right: 0;
     bottom: 0;
     padding: 1rem;
-    border-top: 1px solid #eee;
+    border-top: 2px solid #eee;
     background: #fff; }

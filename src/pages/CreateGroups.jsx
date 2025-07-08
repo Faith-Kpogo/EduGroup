@@ -2,15 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import '../Styles/CreateGroups.css'
-import Sidebar from '../components/Sidebar';
+import MainLayout from '../components/MainLayout';
 import '../App.css'
 
 const CreateGroups = () => {
   const navigate = useNavigate();
 
   return (
+    <MainLayout>
     <div className="d-flex">
-        <Sidebar />
         <div className="main p-4 flex-grow-1">
         <h3>Create Groups</h3>
         <p className="text-muted">Define parameters for generating balanced student groups</p>
@@ -94,6 +94,7 @@ const CreateGroups = () => {
         </div>
         </div>
     </div>
+    </MainLayout>
 
   );
 };

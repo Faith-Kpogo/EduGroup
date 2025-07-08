@@ -1,4 +1,5 @@
 import React from 'react';
+import MainLayout from '../components/MainLayout';
 import Sidebar from '../components/Sidebar';
 import {Download, ChevronLeft ,ChevronRight } from 'lucide-react';
 import '../Styles/GroupsHistory.css'
@@ -9,8 +10,8 @@ const GroupsHistory = () => {
   const groups = [];
 
   return (
+    <MainLayout>
     <div className="d-flex">
-    <Sidebar />
     <div className="p-4">
       <h3 className="mb-1">Groups History</h3>
       <p className="text-muted mb-4">View previously generated student groups</p>
@@ -65,6 +66,7 @@ const GroupsHistory = () => {
         </div>
     </div>
     </div>
+    </MainLayout>
   );
 };
 
