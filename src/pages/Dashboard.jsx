@@ -65,7 +65,9 @@ const Dashboard = () => {
 
           <div className="bg-white p-4 rounded shadow-sm">
             <h5>Recent Groups</h5>
-            <Table />                  
+            <div className="table-responsive-custom">
+              <Table />                  
+            </div>
           </div>
 
           

@@ -45,7 +45,6 @@
   gap: 1rem 0;
 }
 .bg-white.p-4.rounded.shadow-sm {
-  overflow-x: auto;
   padding: 1.2rem 0.7rem;
 }
 .mt-3.bg-light.p-3.rounded {
@@ -92,7 +91,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: 250px; /* Adjust as needed */
+    width: 250px;
     background: #fff;
     box-shadow: -2px 0 8px rgba(0,0,0,0.08);
     opacity: 1;
@@ -157,6 +156,9 @@
 }
 
 @media (max-width: 600px) {
+  .sidebar-right {
+    width: 220px;
+  }
   .main-content {
     padding: 0.7rem 0.2rem;
   }
@@ -177,9 +179,6 @@
   }
   .data.row h5{
     font-size: 25px;
-  }
-  .bg-white.p-4.rounded.shadow-sm{
-    display: none;
   }
 }
 
