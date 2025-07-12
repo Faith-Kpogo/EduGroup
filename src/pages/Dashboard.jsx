@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import Logo from '../components/Logo';
 import "../Styles/Dashboard.css"
-import Sidebar from '../components/Sidebar';
 import { Plus, Upload, Download, ListTodo, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Table from '../components/Table';

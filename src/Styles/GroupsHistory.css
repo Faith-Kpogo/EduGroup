@@ -1,8 +1,13 @@
+.main-content {
+    max-width: 900px;
+    width: 100%;
+}
 .mainsection{
     border: 1px solid #e5e7eb;
 }
 .main2{
     border: 1px solid #e5e7eb;
+    margin-bottom: 0;
 }
 /* Pagination Container */
 .pagination {
@@ -35,4 +40,67 @@
 .page-item.disabled .page-link{
     border: none;
     background-color: transparent;
+}
+
+@media (max-width: 900px) {
+    .main-content {
+        padding: 1.4rem 1.2vw !important;
+    }   
+    .mainsection,
+    .main2 {
+        padding: 1rem 0.5rem !important;
+    }
+    .mainsection .d-flex.gap-3.mb-3 {
+        flex-wrap: wrap;
+        gap: .6rem !important;
+    }
+    .mainsection .form-control,
+    .mainsection .form-select {
+        min-width: 120px;
+        font-size: 0.95rem;
+    }
+    .mainsection .btn {
+        font-size: 0.95rem;
+        padding: 6px 12px;
+    } 
+    .main-content,
+    .main-content p,
+    .main-content label,
+    .main-content select,
+    .main-content input,
+    .main-content .page-link,
+    .main-content .btn,
+    .main-content h4,
+    .main-content h5 {
+        font-size: 0.96rem;
+    }
+    .main-content h4 {
+        font-size: 1.2rem;
+    }
+    .main-content h5 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .main-content,
+    .main-content p,
+    .main-content label,
+    .main-content select,
+    .main-content input,
+    .main-content .page-link,
+    .main-content .btn,    .main-content h4,
+    .main-content h5 {
+        font-size: 0.85rem;
+    }
+    .main-content h3 {
+        font-size: 1.4rem;
+    }
+    .main-content h4 {
+        font-size: 1.1rem;
+    }
+    .main-content h5 {
+        font-size: 0.9rem;
+    }
 }

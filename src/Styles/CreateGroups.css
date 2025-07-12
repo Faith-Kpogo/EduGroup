@@ -26,3 +26,71 @@
 .button-group {
     gap: 30%;
 }
+
+
+@media (max-width: 900px) {
+    .main {
+        margin-left: 0;
+    }
+    .create-groups-container {
+        margin: 0 auto;
+        width: 90vw;
+        max-width: 96vw;
+    }
+    .button-group {
+        gap: 2rem;
+    }
+    .button-group .btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    .create-groups-container h3 {
+        font-size: 1.2rem;
+    }
+    .create-groups-container h5 {
+        font-size: 1rem;
+    }
+    .create-groups-container label,
+    .create-groups-container input,
+    .create-groups-container select,
+    .create-groups-container p,
+    .create-groups-container small {
+        font-size: 0.95rem;
+    }
+}
+@media (max-width: 600px) {
+    .col-5 {
+        flex-direction: column;
+    }
+    .create-groups-container h3 {
+        font-size: 1rem;
+    }
+
+    .create-groups-container h5 {
+        font-size: 0.9rem;
+    }
+
+    .create-groups-container label,
+    .create-groups-container input,
+    .create-groups-container select,
+    .create-groups-container p,
+    .create-groups-container small {
+        font-size: 0.85rem;
+    }
+    .button-group {
+        gap: 1rem;
+    }
+    small{
+        display: none;
+    }
+    .right-input{
+        margin-bottom: 15px;
+    }
+    .button-group .btn {
+        font-size: 0.7rem;
+        padding: 5px 8px;
+    }
+    button.btn.btn-outline-primary{
+        display: none;
+    }
+}

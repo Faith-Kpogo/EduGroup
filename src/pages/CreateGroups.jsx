@@ -18,7 +18,7 @@ const CreateGroups = () => {
         <div className="create-groups-container bg-white p-4 rounded shadow-sm">
         <h5>Select Course and Students</h5>
         <div className="row mb-3 gap-5">
-          <div className="col-md-5">
+          <div className="col-5">
             <div className="mb-2">
               <label htmlFor="course" className="form-label">Course</label>
               <select id="course" className="form-select form-select-sm">
@@ -26,7 +26,7 @@ const CreateGroups = () => {
               </select>
             </div>
           </div>
-          <div className="col-md-5">
+          <div className="col-5 ms-auto">
             <div className="mb-2">
               <label htmlFor="section" className="form-label">Section</label>
               <select id="section" className="form-select form-select-sm">
@@ -43,7 +43,7 @@ const CreateGroups = () => {
 
         <h5>Select Grouping Parameters</h5>
         <div className="row">
-          <div className="col-md-5">
+          <div className="col-5">
             <div className="mb-3">
               <label htmlFor="studentsPerGroup" className="form-label">Number of students per group</label>
               <input type="number" id="studentsPerGroup" className="form-control form-control-sm" />
@@ -53,17 +53,17 @@ const CreateGroups = () => {
               <input type="number" id="numberOfGroups" className="form-control form-control-sm" />
             </div>
           </div>
-          <div className="col-md-5 d-flex flex-column justify-content-start gap-2 pt-2">
+          <div className="col-5 d-flex flex-column justify-content-start gap-2 pt-2 ms-auto">
             <div className="form-check">
               <input type="checkbox" className="form-check-input" id="genderBalance" />
-              <label className="form-check-label" htmlFor="genderBalance">
+              <label className="form-check-label right-input" htmlFor="genderBalance">
                 Gender balance<br />
                 <small className="text-muted">Ensure gender diversity in each group</small>
               </label>
             </div>
             <div className="form-check">
               <input type="checkbox" className="form-check-input" id="academicBalance" />
-              <label className="form-check-label" htmlFor="academicBalance">
+              <label className="form-check-label right-input" htmlFor="academicBalance">
                 Academic balance<br />
                 <small className="text-muted">Mix different academic performance levels</small>
               </label>
@@ -78,11 +78,11 @@ const CreateGroups = () => {
             </div>
 
             <div className="d-flex justify-content-start button-group">
-            <div>
+            <div className='d-flex gap-2'>
                 <button className="btn btn-outline-secondary me-2">Cancel</button>
                 <button className="btn btn-outline-primary">Step 1/2</button>
             </div>
-            <div>
+            <div className='d-flex gap-2 ms-auto'>
                 <button className="btn btn-outline-secondary me-2">
                 <Upload size={16} className="me-1" /> Upload Student Data
                 </button>

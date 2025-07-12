@@ -12,11 +12,11 @@ const GroupsHistory = () => {
   return (
     <MainLayout>
     <div className="d-flex">
-    <div className="p-4">
+    <div className="main-content px-4 pt-4">
       <h3 className="mb-1">Groups History</h3>
       <p className="text-muted mb-4">View previously generated student groups</p>
 
-      <div className="mainsection bg-white p-4 rounded shadow-sm">
+      <div className="mainsection bg-white p-4 rounded shadow-sm px-4 pt-4">
         <div className="d-flex gap-3 mb-3">
           <input type="text" className="form-control" placeholder="Search groups" style={{ maxWidth: '200px' }} />
           <select className="form-select" style={{ maxWidth: '150px' }}>
@@ -28,7 +28,7 @@ const GroupsHistory = () => {
           <select className="form-select" style={{ maxWidth: '150px' }}>
             <option>All Statuses</option>
           </select>
-          <button className="btn mainbtn ms-auto d-flex align-items-center gap-2">
+          <button className="btn mainbtn d-flex align-items-center gap-2">
             <Download size={18} />Export
           </button>
         </div>
