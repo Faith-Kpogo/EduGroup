@@ -21,6 +21,15 @@ select:focus{
     outline: none!important;
     box-shadow: none!important; 
 }
+
+
+input:focus,
+textarea:focus{
+    outline: none!important;
+    box-shadow: none!important;
+    border-color: #2C3690;
+    background: #fff;
+}
 @media (max-width: 900px) {
     .modal-backdrop {
             top: 10%;
