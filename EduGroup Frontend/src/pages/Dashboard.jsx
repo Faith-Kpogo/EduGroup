@@ -1,6 +1,7 @@
+// Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import "../Styles/Dashboard.css";
-import { Plus, Upload, Download, ListTodo, Trash2, Pencil  } from "lucide-react";
+import { Plus, Upload, Download, ListTodo, Trash2, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import Table from "../components/Table";
 import AddTaskModal from "../components/AddTask";
@@ -8,20 +9,17 @@ import MainLayout from "../components/MainLayout";
 import axios from "axios";
 import EditTaskModal from "../components/EditTaskModal";
 
-
 const Dashboard = () => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [recentGroups, setRecentGroups] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState({
-    totalStudents: 0,
+    departmentStudents: 0,
     activeGroups: 0,
-    recentActivity: 0,
+    groupedStudents: 0,
   });
   const [editingTask, setEditingTask] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null); 
-
-
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
 
@@ -57,7 +55,6 @@ const Dashboard = () => {
     }
   };
 
-  // ✅ Fetch upcoming tasks
   // ✅ Fetch tasks
   const fetchTasks = async () => {
     const token = localStorage.getItem("token");
@@ -65,7 +62,6 @@ const Dashboard = () => {
 
     try {
       const res = await axios.get("http://localhost:5000/api/tasks", {
-        // 👈 FIXED
         headers: { Authorization: `Bearer ${token}` },
       });
       setTasks(res.data);
@@ -86,7 +82,6 @@ const Dashboard = () => {
       });
       setTasks(tasks.filter((t) => t.id !== taskId));
       setConfirmDelete(null);
-      // ✅ Refresh tasks after deletion
       fetchTasks();
     } catch (err) {
       console.error("Failed to delete task:", err);
@@ -112,8 +107,8 @@ const Dashboard = () => {
           <div className="data row my-4">
             <div className="col-4">
               <div className="bg-light p-3 rounded shadow-sm">
-                <h5 className="text-start fw-bold">{stats.totalStudents}</h5>
-                <p className="text-start">Total Students</p>
+                <h5 className="text-start fw-bold">{stats.departmentStudents}</h5>
+                <p className="text-start">Department Students</p>
               </div>
             </div>
             <div className="col-4">
@@ -124,8 +119,8 @@ const Dashboard = () => {
             </div>
             <div className="col-4">
               <div className="bg-light p-3 rounded shadow-sm">
-                <h5 className="text-start fw-bold">{stats.recentActivity}</h5>
-                <p className="text-start">Recent Activity</p>
+                <h5 className="text-start fw-bold">{stats.groupedStudents}</h5>
+                <p className="text-start">Grouped Students</p>
               </div>
             </div>
           </div>
@@ -174,7 +169,6 @@ const Dashboard = () => {
                   <div className="col-md-6" key={index}>
                     <div className="card shadow-sm border-0 h-100">
                       <div className="card-body d-flex flex-column justify-content-between">
-                        {/* Task Title + Due Date */}
                         <div>
                           <h6 className="card-title mb-1 fw-semibold">
                             {task.title}
@@ -186,6 +180,7 @@ const Dashboard = () => {
                             {task.description || <em>No description</em>}
                           </p>
                         </div>
+
                         <button
                           className="btn btn-sm btn-light text-primary border-0 d-flex align-items-center justify-content-center"
                           style={{
@@ -199,7 +194,6 @@ const Dashboard = () => {
                           <Pencil size={18} />
                         </button>
 
-                        {/* Delete Button (Trash Icon) */}
                         <div className="d-flex justify-content-end">
                           <button
                             className="btn btn-sm btn-light text-danger border-0 d-flex align-items-center justify-content-center"
@@ -223,13 +217,13 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Add Task Modal */}
         <AddTaskModal
           isOpen={showAddTaskModal}
           onClose={() => setShowAddTaskModal(false)}
-          onTaskAdded={fetchTasks} // ✅ refresh tasks after adding
+          onTaskAdded={fetchTasks}
         />
       </div>
+
       <EditTaskModal
         isOpen={!!editingTask}
         onClose={() => setEditingTask(null)}
@@ -237,8 +231,6 @@ const Dashboard = () => {
         onTaskUpdated={fetchTasks}
       />
     </MainLayout>
-
-    
   );
 };
 
