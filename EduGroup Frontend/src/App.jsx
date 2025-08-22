@@ -9,7 +9,7 @@ import '../src/App.css'
 import GroupsHistory from './pages/GroupsHistory';
 import Settings from './pages/Settings';
 import GroupDetails from './pages/GroupDetails';
-
+import PreviewGroups from './pages/PreviewGroups';
 
 function App() {
    useEffect(() => {
@@ -33,6 +33,7 @@ function App() {
         <Route path="/groupshistory" element={<GroupsHistory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/groupdetails" element={<GroupDetails />} />
+        <Route path="/previewgroups" element={<PreviewGroups />} />
       </Routes>
     </Router>
   );
