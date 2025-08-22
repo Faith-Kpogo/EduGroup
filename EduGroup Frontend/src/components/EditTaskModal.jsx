@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
+const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(""); // Inline error state
 
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title);
+      setDescription(task.description || "");
+      setDueDate(task.due_date.split("T")[0]); // format yyyy-mm-dd
+      setError(""); // Clear error when modal opens
+    }
+  }, [task]);
+
   if (!isOpen) return null;
 
-  const handleSave = async () => {
+  const handleUpdate = async () => {
     if (!title || !dueDate) {
       setError("Title and Due Date are required.");
       return;
@@ -21,25 +30,20 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
       setError("");
       const token = localStorage.getItem("token");
 
-      await axios.post(
-        "http://localhost:5000/api/tasks",
+      await axios.put(
+        `http://localhost:5000/api/tasks/${task.id}`,
         { title, description, due_date: dueDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // ✅ Refresh tasks in Dashboard
-      if (onTaskAdded) {
-        onTaskAdded();
+      if (onTaskUpdated) {
+        onTaskUpdated();
       }
 
-      // ✅ Close modal and reset form
-      setTitle("");
-      setDescription("");
-      setDueDate("");
       onClose();
     } catch (error) {
-      console.error("Failed to save task:", error);
-      setError("Failed to save task. Please try again.");
+      console.error("Failed to update task:", error);
+      setError("Failed to update task. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
         style={{ width: "500px", margin: "10% auto" }}
       >
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">Add Task</h5>
+          <h5 className="mb-0">Edit Task</h5>
           <button className="btn-close" onClick={onClose}></button>
         </div>
 
@@ -70,7 +74,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
             id="taskTitle"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter task title"
           />
         </div>
 
@@ -82,7 +85,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
             rows="3"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter task description"
           ></textarea>
         </div>
 
@@ -93,7 +95,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
             className="form-control"
             id="dueDate"
             value={dueDate}
-            min={new Date().toISOString().split("T")[0]} // ✅ disable past dates
+            min={new Date().toISOString().split("T")[0]} // ✅ no past dates
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
@@ -102,8 +104,8 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
           <button className="btn btn-outline-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn mainbtn" onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Task"}
+          <button className="btn mainbtn" onClick={handleUpdate} disabled={loading}>
+            {loading ? "Saving..." : "Update Task"}
           </button>
         </div>
       </div>
@@ -111,4 +113,4 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
   );
 };
 
-export default AddTaskModal;
+export default EditTaskModal;

@@ -8,5 +8,9 @@ router.post("/", authenticateToken, taskController.createTask);
 
 // Get lecturer's tasks
 router.get("/", authenticateToken, taskController.getTasks);
+router.delete("/:id", authenticateToken, taskController.deleteTask);
+// Update task
+router.put("/:id", authenticateToken, taskController.updateTask);
+
 
 module.exports = router;

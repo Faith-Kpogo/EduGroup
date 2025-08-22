@@ -48,3 +48,54 @@ exports.getTasks = (req, res) => {
     res.json(results);
   });
 };
+
+// ✅ Delete a task
+exports.deleteTask = (req, res) => {
+  const userId = req.user.id;
+  const taskId = req.params.id;
+
+  const query = `
+    DELETE FROM tasks
+    WHERE id = ? AND created_by = ?
+  `;
+
+  db.query(query, [taskId, userId], (err, result) => {
+    if (err) {
+      console.error("Error deleting task:", err);
+      return res.status(500).json({ message: "Error deleting task" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Task not found or not authorized" });
+    }
+    res.json({ message: "Task deleted successfully" });
+  });
+};
+
+// ✅ Update a task
+exports.updateTask = (req, res) => {
+  const { title, description, due_date } = req.body;
+  const taskId = req.params.id;
+  const userId = req.user.id;
+
+  if (!title || !due_date) {
+    return res.status(400).json({ message: "Title and due date are required" });
+  }
+
+  const query = `
+    UPDATE tasks 
+    SET title = ?, description = ?, due_date = ?
+    WHERE id = ? AND created_by = ?
+  `;
+
+  db.query(query, [title, description, due_date, taskId, userId], (err, result) => {
+    if (err) {
+      console.error("Error updating task:", err);
+      return res.status(500).json({ message: "Error updating task" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Task not found or not authorized" });
+    }
+    res.json({ message: "Task updated successfully" });
+  });
+};
+

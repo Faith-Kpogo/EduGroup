@@ -28,6 +28,7 @@
 }
 
 
+
 @media (max-width: 900px) {
     .main {
         margin-left: 0;
@@ -93,4 +94,48 @@
     button.btn.btn-outline-primary{
         display: none;
     }
+}
+/* Custom styling for checkboxes with .checkInput */
+.checkInput {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid #2C3690;
+    border-radius: 6px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    position: relative;
+    vertical-align: middle;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-right: 8px;
+    outline: none;
+}
+
+.checkInput:checked {
+    border-color: #2C3690;
+    background-color: #2C3690;
+}
+
+.checkInput:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 12px;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+.form-check{
+    display: flex;
+}
+.advanced-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+.cursor-none {
+    cursor: default !important;
 }
