@@ -37,3 +37,6 @@ app.use('/api/groups', groupRoutes);
 
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
+
+const courseRoutes = require("./routes/courseRoutes");
+app.use("/api/courses", courseRoutes);
