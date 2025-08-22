@@ -16,52 +16,50 @@ const CreateGroups = () => {
   const [distribution, setDistribution] = useState('');
 
   // ✅ Form states
-  const [level, setLevel] = useState(""); // 👈 NEW
+  const [level, setLevel] = useState("");
   const [courseId, setCourseId] = useState("");
   const [studentsPerGroup, setStudentsPerGroup] = useState("");
   const [numberOfGroups, setNumberOfGroups] = useState("");
   const [genderBalance, setGenderBalance] = useState(false);
   const [academicBalance, setAcademicBalance] = useState(false);
 
-  // ✅ Courses state
-const [courses, setCourses] = useState([]);
+  // ✅ Feedback states
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  // ✅ Courses state
+  const [courses, setCourses] = useState([]);
 
   // Fetch courses whenever level changes
-// Fetch courses whenever level changes
-useEffect(() => {
-  const fetchCourses = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    try {
-      let url = "http://localhost:5000/api/courses";
-      if (level) {
-        url += `?level=${level}`;
+      try {
+        let url = "http://localhost:5000/api/courses";
+        if (level) {
+          url += `?level=${level}`;
+        }
+
+        const res = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setCourses(res.data);
+
+        // Reset courseId only if previously selected course doesn't exist
+        if (!res.data.find(c => c.id === courseId)) {
+          setCourseId("");
+        }
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        setCourses([]); // reset on error
       }
+    };
 
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setCourses(res.data);
-
-      // Reset courseId only if previously selected course doesn't exist
-      if (!res.data.find(c => c.id === courseId)) {
-        setCourseId("");
-      }
-    } catch (err) {
-      console.error("Failed to fetch courses:", err);
-      setCourses([]); // reset on error
-    }
-  };
-
-  fetchCourses();
-}, [level]);
-
-
-
-
+    fetchCourses();
+  }, [level]);
 
   const handleAddStudent = () => {
     if (newStudent.trim() !== '') {
@@ -76,40 +74,61 @@ useEffect(() => {
     setStudentsTogether(updated);
   };
 
+  // ✅ Validation
+  const validateForm = () => {
+    const newErrors = {};
+    if (!courseId) newErrors.courseId = "Please select a course.";
+    if (!studentsPerGroup && !numberOfGroups) {
+      newErrors.grouping = "Provide either students per group or number of groups.";
+    }
+    if (studentsPerGroup && studentsPerGroup <= 0) {
+      newErrors.studentsPerGroup = "Must be greater than 0.";
+    }
+    if (numberOfGroups && numberOfGroups <= 0) {
+      newErrors.numberOfGroups = "Must be greater than 0.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // ✅ Call backend
   const handleGenerateGroups = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in.");
-      return;
-    }
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in.");
+    return;
+  }
 
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/groups/generate",
-        {
-          courseId,
-          studentsPerGroup: studentsPerGroup ? parseInt(studentsPerGroup) : null,
-          numberOfGroups: numberOfGroups ? parseInt(numberOfGroups) : null,
-          genderBalance,
-          academicBalance,
-          distributionMethod: distribution || "random"
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  if (!courseId) {
+    alert("Please select a course before generating groups.");
+    return;
+  }
 
-      alert("Groups generated successfully!");
-      console.log(res.data);
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/groups/generate",
+      {
+        courseId,
+        studentsPerGroup: studentsPerGroup ? parseInt(studentsPerGroup) : null,
+        numberOfGroups: numberOfGroups ? parseInt(numberOfGroups) : null,
+        genderBalance,
+        academicBalance,
+        distributionMethod: distribution || "random"
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-      // Redirect to dashboard
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Error generating groups:", err);
-      alert("Failed to generate groups");
-    }
-  };
+    // ✅ Send data to preview page
+navigate("/previewgroups", { state: { groups: res.data.groups, batchId: res.data.batchId } });
+
+  } catch (err) {
+    console.error("Error generating groups:", err);
+    alert(err.response?.data?.message || "Failed to generate groups");
+  }
+};
+
 
   return (
     <MainLayout>
@@ -119,6 +138,10 @@ useEffect(() => {
           <p className="text-muted">Define parameters for generating balanced student groups</p>
 
           <div className="create-groups-container bg-white p-4 rounded shadow-sm">
+            {errors.general && (
+              <div className="alert alert-danger py-2">{errors.general}</div>
+            )}
+
             <h5>Select Course and Students</h5>
             <div className="row mb-3 gap-5">
               {/* Level Dropdown */}
@@ -157,13 +180,11 @@ useEffect(() => {
                       </option>
                     ))}
                   </select>
+                  {errors.courseId && (
+                    <div className="text-danger small mt-1">{errors.courseId}</div>
+                  )}
                 </div>
               </div>
-            </div>
-
-            <div className="form-check mb-4 ps-0">
-              <input type="checkbox" className="checkInput ms-0" id="enrolledStudents" />
-              <label className="form-check-label" htmlFor="enrolledStudents">Include all enrolled students</label>
             </div>
 
             {/* Grouping Parameters */}
@@ -179,6 +200,9 @@ useEffect(() => {
                     value={studentsPerGroup}
                     onChange={(e) => setStudentsPerGroup(e.target.value)}
                   />
+                  {errors.studentsPerGroup && (
+                    <div className="text-danger small mt-1">{errors.studentsPerGroup}</div>
+                  )}
                 </div>
                 <div className="mb-3">
                   <label htmlFor="numberOfGroups" className="form-label">Number of groups</label>
@@ -189,7 +213,13 @@ useEffect(() => {
                     value={numberOfGroups}
                     onChange={(e) => setNumberOfGroups(e.target.value)}
                   />
+                  {errors.numberOfGroups && (
+                    <div className="text-danger small mt-1">{errors.numberOfGroups}</div>
+                  )}
                 </div>
+                {errors.grouping && (
+                  <div className="text-danger small mt-1">{errors.grouping}</div>
+                )}
               </div>
               <div className="col-5 d-flex flex-column justify-content-start gap-2 pt-2 ms-auto">
                 <div className="form-check ps-0">
@@ -315,11 +345,11 @@ useEffect(() => {
                 <button className="btn btn-outline-primary cursor-none">Step 1/2</button>
               </div>
               <div className='d-flex gap-2 ms-auto'>
-                <button className="btn btn-outline-secondary me-2">
+                <button className="btn btn-outline-secondary me-2" disabled={loading}>
                   <Upload size={16} className="me-1" /> Upload Student Data
                 </button>
-                <button className="btn mainbtn" onClick={handleGenerateGroups}>
-                  Generate groups
+                <button className="btn mainbtn" onClick={handleGenerateGroups} disabled={loading}>
+                  {loading ? "Generating..." : "Generate groups"}
                 </button>
               </div>
             </div>
