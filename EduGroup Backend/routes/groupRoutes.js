@@ -15,7 +15,14 @@ router.post("/", authenticateToken, groupController.createGroup);
 // ✅ Get all groups in a batch
 router.get("/batch/:batchId", authenticateToken, groupController.getGroupsByBatch);
 
+router.get("/history", authenticateToken, groupController.getGroupsHistory);
 // ✅ Get details for a specific group
 router.get("/:groupId", authenticateToken, groupController.getGroupDetails);
+
+// ✅ Groups history
+// ✅ Groups History (all groups created by lecturer)
+
+
+
 
 module.exports = router;
