@@ -1,76 +1,86 @@
-import React from "react";
-import { useLocation, useNavigate, } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import MainLayout from "../components/MainLayout";
+import "../Styles/PreviewGroups.css";
+
+
 
 const PreviewGroups = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { groups, batchId } = location.state || {};
+  const { batchId } = useParams();
+    const navigate = useNavigate();
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!groups || !batchId) {
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/groups/batch/${batchId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setGroups(res.data);
+      } catch (err) {
+        console.error("Error fetching groups:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, [batchId]);
+
+  if (loading)
     return (
       <MainLayout>
-        <div className="p-4">
-          <h3>No groups to preview</h3>
-          <button
-            className="btn btn-outline-primary mt-3"
-            onClick={() => navigate("/creategroups")}
-          >
-            Back to Create Groups
-          </button>
-        </div>
+        <p>Loading groups...</p>
       </MainLayout>
     );
-  }
 
   return (
     <MainLayout>
-      <div className="p-4">
-        <h3>Preview Groups</h3>
+      <div className="preview-groups-container">
+        <h3 className="preview-groups-title">Groups Preview</h3>
+        {groups.length > 0 && (
+          <h4 className="group-course mb-4">Course: {groups[0].course}</h4>
+        )}
         <p className="text-muted">
-          Review the generated groups before finalizing.
+          Total Students Grouped:{" "}
+          {groups.reduce((total, g) => total + g.members.length, 0)}
         </p>
 
-        <div className="row">
-          {groups.map((group, idx) => (
-            <div key={group.id} className="col-md-6 mb-4">
-              <div className="card shadow-sm">
-                <div className="card-header">
-                  <strong>{group.name}</strong>
-                </div>
+        {groups.length === 0 ? (
+          <p>No groups found for this batch.</p>
+        ) : (
+          <div className="groups-grid">
+            {groups.map((group, idx) => (
+              <div key={group.id} className="group-card">
                 <div className="card-body">
-                  <p><strong>Group Size:</strong> {group.members.length}</p>
-                  <ul className="list-group">
-                    {group.members.map((student) => (
-                      <li
-                        key={student.id}
-                        className="list-group-item d-flex justify-content-between"
-                      >
-                        {student.first_name} {student.last_name}
-                        <span className="badge bg-secondary">{student.gender}</span>
+                  <h5 className="group-card-title">Group {idx + 1}</h5>
+                  <p>
+                    <strong>Members:</strong>
+                  </p>
+                  <ul className="group-members-list">
+                    {group.members.map((student, i) => (
+                      <li key={i}>
+                        {student.index_number} ({student.gender})
                       </li>
                     ))}
                   </ul>
+                  <button
+                    className="btn btn-sm btn-outline-primary mt-3"
+                    onClick={() => navigate(`/groupdetails/${group.id}`)}
+                  >
+                    View Details
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="d-flex gap-3 mt-4">
-          <button
-            className="btn btn-secondary"
-            onClick={() => navigate("/creategroups")}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/dashboard", { state: { success: true } })}
-          >
-            Confirm & Save
-          </button>
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </MainLayout>
   );

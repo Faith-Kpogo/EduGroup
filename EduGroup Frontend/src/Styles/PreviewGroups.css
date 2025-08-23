@@ -1,0 +1,82 @@
+.preview-groups-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.preview-groups-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #2C3690;
+}
+
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.group-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(44, 54, 144, 0.08);
+    background: #fff;
+    transition: box-shadow 0.2s;
+    min-width: 0;
+}
+
+.group-card:hover {
+    box-shadow: 0 4px 16px rgba(44, 54, 144, 0.15);
+}
+
+.group-card .card-body {
+    padding: 1.2rem;
+}
+
+.group-card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #2C3690;
+    margin-bottom: 0.5rem;
+}
+
+.group-course {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0;
+}
+
+.group-members-list {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.group-members-list li {
+    font-size: 1rem;
+    color: #333;
+    background: #f5f6fa;
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: block;
+    margin-right: 0;
+}
+
+.preview-groups-container .text-muted {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.2px;
+}
+
+@media (max-width: 900px) {
+    .groups-grid {
+        grid-template-columns: 1fr;
+    }
+}

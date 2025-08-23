@@ -32,8 +32,9 @@ function App() {
         <Route path="/creategroups" element={<CreateGroups />} />
         <Route path="/groupshistory" element={<GroupsHistory />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/groupdetails" element={<GroupDetails />} />
-        <Route path="/previewgroups" element={<PreviewGroups />} />
+        <Route path="/previewgroups/:batchId" element={<PreviewGroups />} />
+        <Route path="/groupdetails/:groupId" element={<GroupDetails />} />
+
       </Routes>
     </Router>
   );
