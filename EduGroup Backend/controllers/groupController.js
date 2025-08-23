@@ -285,3 +285,34 @@ exports.getGroupDetails = (req, res) => {
     });
   });
 };
+
+
+// ✅ Get all groups history for lecturer
+exports.getGroupsHistory = (req, res) => {
+  const userId = req.user.id;
+
+  const query = `
+    SELECT 
+      g.id,
+      g.name AS group_name,
+      g.batch_id,
+      g.created_at,
+      g.status,
+      c.course_name,
+      COUNT(gm.student_id) AS student_count
+    FROM \`groups\` g
+    LEFT JOIN group_members gm ON g.id = gm.group_id
+    LEFT JOIN courses c ON g.course_id = c.id
+    WHERE g.created_by = ?
+    GROUP BY g.id, g.name, g.batch_id, g.created_at, g.status, c.course_name
+    ORDER BY g.created_at DESC
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching groups history:", err);
+      return res.status(500).json({ message: "Error fetching groups history" });
+    }
+    res.json(results);
+  });
+};

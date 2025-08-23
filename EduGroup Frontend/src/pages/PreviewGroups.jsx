@@ -3,12 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import MainLayout from "../components/MainLayout";
 import "../Styles/PreviewGroups.css";
-
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const PreviewGroups = () => {
   const { batchId } = useParams();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +33,35 @@ const PreviewGroups = () => {
     fetchGroups();
   }, [batchId]);
 
+  // ✅ Export to Excel (XLSX)
+  const handleExport = () => {
+    if (groups.length === 0) return;
+
+    // Flatten groups into rows
+    const rows = [];
+    groups.forEach((group, idx) => {
+      group.members.forEach((student) => {
+        rows.push({
+          Group: `Group ${idx + 1}`,
+          "Index Number": student.index_number,
+        });
+      });
+    });
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Groups");
+
+    // Export file
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, `groups_batch_${batchId}.xlsx`);
+  };
+
   if (loading)
     return (
       <MainLayout>
@@ -43,7 +72,13 @@ const PreviewGroups = () => {
   return (
     <MainLayout>
       <div className="preview-groups-container">
-        <h3 className="preview-groups-title">Groups Preview</h3>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h3 className="preview-groups-title">Groups Preview</h3>
+          <button className="btn btn-success" onClick={handleExport}>
+            Export to Excel
+          </button>
+        </div>
+
         {groups.length > 0 && (
           <h4 className="group-course mb-4">Course: {groups[0].course}</h4>
         )}

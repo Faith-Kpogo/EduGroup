@@ -51,6 +51,10 @@ const GroupDetails = () => {
     s.index_number.toLowerCase().includes(search.toLowerCase())
   );
 
+  // ✅ Gender counts
+  const maleCount = group.students.filter(s => s.gender === "Male").length;
+  const femaleCount = group.students.filter(s => s.gender === "Female").length;
+
   return (
     <MainLayout>
       <div className="p-4 flex-grow-1">
@@ -91,8 +95,11 @@ const GroupDetails = () => {
               <p>{group.students.length}</p>
             </div>
             <div className="col-md-4">
-              <p><strong>Date created</strong></p>
-              <p>{group.created_at ? new Date(group.created_at).toLocaleDateString() : "N/A"}</p>
+              <p><strong>Gender Distribution</strong></p>
+              <ul className="list-unstyled">
+                <li>Male: {maleCount}</li>
+                <li>Female: {femaleCount}</li>
+              </ul>
             </div>
             <div className="col-md-4">
               <p><strong>Performance Distribution</strong></p>
