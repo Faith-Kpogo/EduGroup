@@ -26,19 +26,24 @@ exports.getDashboard = (req, res) => {
          FROM students s
          WHERE s.department_id = ?) AS departmentStudents,
 
+        -- all groups created by lecturer
+        (SELECT COUNT(*) 
+         FROM \`groups\` g
+         WHERE g.created_by = ?) AS totalGroups,
+
         -- active groups created by lecturer
         (SELECT COUNT(*) 
          FROM \`groups\` g
-         WHERE g.created_by = ?) AS activeGroups,
+         WHERE g.created_by = ? AND g.status = 'Active') AS activeGroups,
 
-        -- total students in groups created by lecturer
-        (SELECT COUNT(DISTINCT gm.student_id)
+        -- total student assignments (includes duplicates if a student is in multiple groups)
+        (SELECT COUNT(gm.student_id)
          FROM group_members gm
          JOIN \`groups\` g ON gm.group_id = g.id
          WHERE g.created_by = ?) AS groupedStudents
     `;
 
-    db.query(statsQuery, [departmentId, userId, userId], (err, results) => {
+    db.query(statsQuery, [departmentId, userId, userId, userId], (err, results) => {
       if (err) {
         console.error("Dashboard query error:", err);
         return res.status(500).json({ message: "Error fetching dashboard stats" });

@@ -114,7 +114,7 @@ const Dashboard = () => {
             <div className="col-4">
               <div className="bg-light p-3 rounded shadow-sm">
                 <h5 className="text-start fw-bold">{stats.activeGroups}</h5>
-                <p className="text-start">Active Groups</p>
+                <p className="text-start">Total Groups</p>
               </div>
             </div>
             <div className="col-4">
