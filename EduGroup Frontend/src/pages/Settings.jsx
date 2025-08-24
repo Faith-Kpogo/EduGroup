@@ -2,18 +2,16 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../Styles/Settings.css";
 import ChangePasswordModal from "../components/ChangePassword";
+import DeleteAccountModal from "../components/DeleteAccountModal"; // ✅ new modal
 import MainLayout from "../components/MainLayout";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // ✅ User state
   const [user, setUser] = useState({ email: "", name: "", department: "" });
-  const [preferences, setPreferences] = useState({
-    genderBalance: false,
-    academicBalance: false,
-  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,50 +23,12 @@ const Settings = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
-        setPreferences({
-          genderBalance: res.data.genderBalance || false,
-          academicBalance: res.data.academicBalance || false,
-        });
       } catch (err) {
         console.error("Error fetching user info:", err);
       }
     };
     fetchUser();
   }, []);
-
-  // ✅ Save preferences
-  const handleSavePreferences = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await axios.patch(
-        "http://localhost:5000/api/users/preferences",
-        preferences,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Preferences updated successfully!");
-    } catch (err) {
-      console.error("Error updating preferences:", err);
-      alert("Failed to update preferences");
-    }
-  };
-
-  // ✅ Delete account
-  const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure you want to delete your account?")) return;
-
-    const token = localStorage.getItem("token");
-    try {
-      await axios.delete("http://localhost:5000/api/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Account deleted successfully!");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    } catch (err) {
-      console.error("Error deleting account:", err);
-      alert("Failed to delete account");
-    }
-  };
 
   return (
     <MainLayout>
@@ -92,16 +52,6 @@ const Settings = () => {
                 onClick={() => setActiveTab("profile")}
               >
                 Profile
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${
-                  activeTab === "preferences" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("preferences")}
-              >
-                Preferences
               </button>
             </li>
           </ul>
@@ -135,7 +85,7 @@ const Settings = () => {
                   <span className="text-danger">Delete account</span>
                   <button
                     className="btn btn-outline-danger btn-sm"
-                    onClick={handleDeleteAccount}
+                    onClick={() => setShowDeleteModal(true)} // ✅ opens modal
                   >
                     Delete
                   </button>
@@ -159,63 +109,17 @@ const Settings = () => {
               </div>
             </div>
           )}
-
-          {/* Preferences */}
-          {activeTab === "preferences" && (
-            <div className="bg-white p-4 rounded shadow-sm d-flex flex-column gap-3">
-              <div>
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="genderBalance"
-                  checked={preferences.genderBalance}
-                  onChange={(e) =>
-                    setPreferences({
-                      ...preferences,
-                      genderBalance: e.target.checked,
-                    })
-                  }
-                />
-                <label
-                  className="form-check-label ms-2"
-                  htmlFor="genderBalance"
-                >
-                  Enable gender balance by default
-                </label>
-              </div>
-              <div>
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="academicBalance"
-                  checked={preferences.academicBalance}
-                  onChange={(e) =>
-                    setPreferences({
-                      ...preferences,
-                      academicBalance: e.target.checked,
-                    })
-                  }
-                />
-                <label
-                  className="form-check-label ms-2"
-                  htmlFor="academicBalance"
-                >
-                  Enable academic balance by default
-                </label>
-              </div>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={handleSavePreferences}
-              >
-                Save Preferences
-              </button>
-            </div>
-          )}
         </div>
 
+        {/* ✅ Modals */}
         <ChangePasswordModal
           isOpen={showPasswordModal}
           onClose={() => setShowPasswordModal(false)}
+        />
+        <DeleteAccountModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          userEmail={user.email}
         />
       </div>
     </MainLayout>

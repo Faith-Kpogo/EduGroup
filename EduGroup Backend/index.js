@@ -40,3 +40,6 @@ app.use("/api/tasks", taskRoutes);
 
 const courseRoutes = require("./routes/courseRoutes");
 app.use("/api/courses", courseRoutes);
+
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/users", userRoutes);

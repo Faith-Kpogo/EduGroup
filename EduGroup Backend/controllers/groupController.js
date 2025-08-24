@@ -87,7 +87,8 @@ exports.generateGroups = (req, res) => {
     numberOfGroups,
     genderBalance,
     academicBalance,
-    distributionMethod
+    distributionMethod,
+    keepTogether // ✅ added
   } = req.body;
 
   if (!courseId) {
@@ -120,11 +121,36 @@ exports.generateGroups = (req, res) => {
       return res.status(400).json({ message: "Either studentsPerGroup or numberOfGroups must be provided" });
     }
 
+    // Shuffle students
     students.sort(() => Math.random() - 0.5);
+
+    // ✅ Handle keepTogether
+    let groupedStudents = [];
+    let remainingStudents = [...students];
+
+    if (Array.isArray(keepTogether) && keepTogether.length > 0) {
+      // Match students by index_number or name
+      const matched = remainingStudents.filter(s =>
+        keepTogether.includes(s.index_number) || 
+        keepTogether.includes(`${s.first_name} ${s.last_name}`)
+      );
+
+      if (matched.length > 0) {
+        // Put them in the first group
+        groupedStudents.push(matched);
+        // Remove them from remaining pool
+        remainingStudents = remainingStudents.filter(s => !matched.includes(s));
+      }
+    }
+
+    // Now create the rest of the groups
+    for (let i = 0; i < remainingStudents.length; i += groupSize) {
+      groupedStudents.push(remainingStudents.slice(i, i + groupSize));
+    }
 
     const batchId = uuidv4();
 
-    // ✅ INSERT into group_generation_history for this batch
+    // ✅ Save to history
     const insertHistory = `
       INSERT INTO group_generation_history
       (id, batch_id, generation_method, parameters, generated_by, status)
@@ -134,11 +160,11 @@ exports.generateGroups = (req, res) => {
     db.query(
       insertHistory,
       [
-        uuidv4(),                // id
-        batchId,                 // batch_id
-        "Algorithm",             // generation_method
-        JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod }),
-        userId                   // generated_by
+        uuidv4(),
+        batchId,
+        "Algorithm",
+        JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod, keepTogether }),
+        userId
       ],
       (err2) => {
         if (err2) {
@@ -146,49 +172,40 @@ exports.generateGroups = (req, res) => {
           return res.status(500).json({ message: "Error saving group history" });
         }
 
-        // Continue creating groups
-        const groups = [];
-        const groupInserts = [];
+        // Insert groups
+        const groupInserts = groupedStudents.map((grp, index) => {
+          return new Promise((resolve, reject) => {
+            const groupName = `Group ${index + 1}`;
+            const groupQuery = `
+              INSERT INTO \`groups\` (name, course_id, department_id, created_by, batch_id, generation_method, generation_parameters)
+              VALUES (?, ?, (SELECT department_id FROM users WHERE id = ?), ?, ?, ?, ?)
+            `;
+            const params = [
+              groupName,
+              courseId,
+              userId,
+              userId,
+              batchId,
+              "Algorithm",
+              JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod, keepTogether })
+            ];
 
-        for (let i = 0; i < students.length; i += groupSize) {
-          groups.push(students.slice(i, i + groupSize));
-        }
+            db.query(groupQuery, params, (err3, result) => {
+              if (err3) return reject(err3);
+              const groupId = result.insertId;
 
-        groups.forEach((grp, index) => {
-          groupInserts.push(
-            new Promise((resolve, reject) => {
-              const groupName = `Group ${index + 1}`;
-              const groupQuery = `
-                INSERT INTO \`groups\` (name, course_id, department_id, created_by, batch_id, generation_method, generation_parameters)
-                VALUES (?, ?, (SELECT department_id FROM users WHERE id = ?), ?, ?, ?, ?)
-              `;
-              const params = [
-                groupName,
-                courseId,
-                userId,
-                userId,
-                batchId,
-                "Algorithm",
-                JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod })
-              ];
-
-              db.query(groupQuery, params, (err3, result) => {
-                if (err3) return reject(err3);
-                const groupId = result.insertId;
-
-                const memberValues = grp.map(s => [groupId, s.id, "member"]);
-                if (memberValues.length > 0) {
-                  const memberQuery = `INSERT INTO group_members (group_id, student_id, role) VALUES ?`;
-                  db.query(memberQuery, [memberValues], (err4) => {
-                    if (err4) return reject(err4);
-                    resolve({ id: groupId, name: groupName, members: grp });
-                  });
-                } else {
-                  resolve({ id: groupId, name: groupName, members: [] });
-                }
-              });
-            })
-          );
+              const memberValues = grp.map(s => [groupId, s.id, "member"]);
+              if (memberValues.length > 0) {
+                const memberQuery = `INSERT INTO group_members (group_id, student_id, role) VALUES ?`;
+                db.query(memberQuery, [memberValues], (err4) => {
+                  if (err4) return reject(err4);
+                  resolve({ id: groupId, name: groupName, members: grp });
+                });
+              } else {
+                resolve({ id: groupId, name: groupName, members: [] });
+              }
+            });
+          });
         });
 
         Promise.all(groupInserts)
@@ -203,6 +220,7 @@ exports.generateGroups = (req, res) => {
     );
   });
 };
+
 
 
 // ✅ Fetch all groups in a batch (with batch status)
