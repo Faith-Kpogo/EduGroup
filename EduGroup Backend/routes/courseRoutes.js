@@ -5,5 +5,8 @@ const courseController = require("../controllers/courseController");
 
 // Get courses for lecturer's department
 router.get("/", authenticateToken, courseController.getCoursesByDepartment);
+// routes/courseRoutes.js
+router.get("/:courseId/students", authenticateToken, courseController.getCourseStudents);
+
 
 module.exports = router;

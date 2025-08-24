@@ -34,3 +34,24 @@ exports.getCoursesByDepartment = (req, res) => {
     res.json(results);
   });
 };
+
+
+// controllers/coursesController.js
+exports.getCourseStudents = (req, res) => {
+  const { courseId } = req.params;
+
+  const query = `
+    SELECT s.id, s.index_number, s.first_name, s.last_name
+    FROM student_courses sc
+    JOIN students s ON sc.student_id = s.id
+    WHERE sc.course_id = ?
+  `;
+
+  db.query(query, [courseId], (err, results) => {
+    if (err) {
+      console.error("Error fetching students:", err);
+      return res.status(500).json({ message: "Error fetching students" });
+    }
+    res.json(results);
+  });
+};

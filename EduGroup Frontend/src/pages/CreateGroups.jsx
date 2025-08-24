@@ -9,7 +9,6 @@ import axios from "axios";
 const CreateGroups = () => {
   const navigate = useNavigate();
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [allowUneven, setAllowUneven] = useState(false);
   const [keepTogether, setKeepTogether] = useState(false);
   const [studentsTogether, setStudentsTogether] = useState([]);
   const [newStudent, setNewStudent] = useState('');
@@ -22,6 +21,9 @@ const CreateGroups = () => {
   const [numberOfGroups, setNumberOfGroups] = useState("");
   const [genderBalance, setGenderBalance] = useState(false);
   const [academicBalance, setAcademicBalance] = useState(false);
+  const [allStudents, setAllStudents] = useState([]);
+const [searchResults, setSearchResults] = useState([]);
+
 
   // ✅ Feedback states
   const [errors, setErrors] = useState({});
@@ -93,41 +95,105 @@ const CreateGroups = () => {
 
   // ✅ Call backend
   const handleGenerateGroups = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("You must be logged in.");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    if (!courseId) {
+      alert("Please select a course before generating groups.");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/groups/generate",
+        {
+          courseId,
+          studentsPerGroup: studentsPerGroup ? parseInt(studentsPerGroup) : null,
+          numberOfGroups: numberOfGroups ? parseInt(numberOfGroups) : null,
+          genderBalance,
+          academicBalance,
+          distributionMethod: distribution || "random",
+          keepTogether: keepTogether ? studentsTogether : null
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // ✅ Send data to preview page
+      navigate(`/previewgroups/${res.data.batchId}`);
+    } catch (err) {
+      console.error("Error generating groups:", err);
+      alert(err.response?.data?.message || "Failed to generate groups");
+    }
+  };
+
+  useEffect(() => {
+  const fetchStudents = async () => {
+    if (!courseId) return;
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(`http://localhost:5000/api/courses/${courseId}/students`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllStudents(res.data); // should return [{id, index_number, first_name, last_name}, ...]
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+    }
+  };
+  fetchStudents();
+}, [courseId]);
+
+// Search handler
+useEffect(() => {
+  const fetchStudents = async () => {
+    if (!courseId) return;
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/courses/${courseId}/students`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAllStudents(res.data);
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+    }
+  };
+  fetchStudents();
+}, [courseId]);
+
+// search input handler
+const handleSearchChange = (e) => {
+  const value = e.target.value;
+  setNewStudent(value);
+
+  if (value.trim() === "") {
+    setSearchResults([]);
     return;
   }
 
-  if (!courseId) {
-    alert("Please select a course before generating groups.");
-    return;
-  }
+  // match by index_number OR first/last name
+  const matches = allStudents.filter(
+    (s) =>
+      s.index_number.toLowerCase().includes(value.toLowerCase()) ||
+      s.first_name.toLowerCase().includes(value.toLowerCase()) ||
+      s.last_name.toLowerCase().includes(value.toLowerCase())
+  );
 
-  try {
-    const res = await axios.post(
-      "http://localhost:5000/api/groups/generate",
-      {
-        courseId,
-        studentsPerGroup: studentsPerGroup ? parseInt(studentsPerGroup) : null,
-        numberOfGroups: numberOfGroups ? parseInt(numberOfGroups) : null,
-        genderBalance,
-        academicBalance,
-        distributionMethod: distribution || "random"
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    // ✅ Send data to preview page
-navigate(`/previewgroups/${res.data.batchId}`);
-  } catch (err) {
-    console.error("Error generating groups:", err);
-    alert(err.response?.data?.message || "Failed to generate groups");
-  }
+  setSearchResults(matches);
 };
 
+// select a student from dropdown
+const handleSelectStudent = (student) => {
+  if (!studentsTogether.includes(student.index_number)) {
+    setStudentsTogether([...studentsTogether, student.index_number]);
+  }
+  setNewStudent("");
+  setSearchResults([]);
+};
 
   return (
     <MainLayout>
@@ -263,20 +329,6 @@ navigate(`/previewgroups/${res.data.batchId}`);
 
             {showAdvanced && (
               <div className="advanced-options border-top pt-3 mt-3">
-                {/* Uneven sizes */}
-                <div className="form-check mb-2 ps-0">
-                  <input
-                    type="checkbox"
-                    className="checkInput"
-                    id="allowUneven"
-                    checked={allowUneven}
-                    onChange={() => setAllowUneven(!allowUneven)}
-                  />
-                  <label htmlFor="allowUneven" className="form-check-label">
-                    Allow uneven group sizes if needed
-                  </label>
-                </div>
-
                 {/* Keep together */}
                 <div className="form-check mb-2 ps-0">
                   <input
@@ -291,33 +343,53 @@ navigate(`/previewgroups/${res.data.batchId}`);
                   </label>
                 </div>
 
-                {keepTogether && (
-                  <div className="mb-3">
-                    <div className="d-flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Add student"
-                        value={newStudent}
-                        onChange={(e) => setNewStudent(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
-                      />
-                      <button className="btn btn-outline-primary" onClick={handleAddStudent}>Add</button>
-                    </div>
-                    <div className="d-flex flex-wrap gap-2">
-                      {studentsTogether.map((student, index) => (
-                        <span key={index} className="badge bg-secondary">
-                          {student}{' '}
-                          <button
-                            type="button"
-                            className="btn-close btn-close-white btn-sm ms-1"
-                            onClick={() => handleRemoveStudent(index)}
-                          />
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+               {keepTogether && (
+  <div className="mb-3 position-relative">
+    <div className="d-flex gap-2 mb-2">
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Type index number or name..."
+        value={newStudent}
+        onChange={handleSearchChange}   // ✅ now triggers live search
+      />
+    </div>
+
+    {/* Suggestions dropdown */}
+    {searchResults.length > 0 && (
+      <ul
+        className="list-group position-absolute w-100"
+        style={{ zIndex: 1000, maxHeight: "150px", overflowY: "auto" }}
+      >
+        {searchResults.map((s) => (
+          <li
+            key={s.id}
+            className="list-group-item list-group-item-action"
+            onClick={() => handleSelectStudent(s)}  // ✅ select student
+            style={{ cursor: "pointer" }}
+          >
+            <strong>{s.index_number}</strong> – {s.first_name} {s.last_name}
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {/* Selected students */}
+    <div className="d-flex flex-wrap gap-2 mt-2">
+      {studentsTogether.map((student, index) => (
+        <span key={index} className="badge bg-secondary">
+          {student}{" "}
+          <button
+            type="button"
+            className="btn-close btn-close-white btn-sm ms-1"
+            onClick={() => handleRemoveStudent(index)}
+          />
+        </span>
+      ))}
+    </div>
+  </div>
+)}
+
 
                 {/* Distribution method */}
                 <div className="mb-3">
