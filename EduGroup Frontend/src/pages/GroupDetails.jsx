@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Edit, MoreVertical } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import axios from 'axios';
 
 const GroupDetails = () => {
   const { groupId } = useParams();
+  const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -55,6 +57,25 @@ const GroupDetails = () => {
   const maleCount = group.students.filter(s => s.gender === "Male").length;
   const femaleCount = group.students.filter(s => s.gender === "Female").length;
 
+  // ✅ Delete group
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this group?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`http://localhost:5000/api/groups/${group.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert("Group deleted successfully");
+        navigate("/groupshistory");
+      } catch (err) {
+        console.error("Error deleting group:", err);
+        alert("Failed to delete group");
+      }
+    }
+  };
+
+  // ✅ Mark inactive
+
   return (
     <MainLayout>
       <div className="p-4 flex-grow-1">
@@ -73,16 +94,38 @@ const GroupDetails = () => {
               <h4 className="mb-0">{group.name}</h4>
               <small className="text-muted">{group.course_name || "N/A"}</small>
             </div>
-            <span className="badge bg-success ms-2">{group.status || "Active"}</span>
+            <span className={`badge ${group.status === "Inactive" ? "bg-secondary" : "bg-success"} ms-2`}>
+              {group.status || "Active"}
+            </span>
           </div>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-2 position-relative">
             <button className="btn mainbtn">
               <Edit size={16} className="me-1" /> Edit
             </button>
-            <button className="btn btn-outline-secondary">
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
               <MoreVertical size={16} />
             </button>
+
+            {/* Dropdown menu */}
+            {menuOpen && (
+              <div
+                className="dropdown-menu show"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "100%",
+                  zIndex: 1000,
+                }}
+              >
+                <button className="dropdown-item text-danger" onClick={handleDelete}>
+                  Delete Group
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

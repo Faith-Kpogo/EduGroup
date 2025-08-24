@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../Styles/Table.css';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "../Styles/Table.css";
 
 const Table = ({ data = [] }) => {
   const navigate = useNavigate();
@@ -31,7 +31,11 @@ const Table = ({ data = [] }) => {
                 <td>{batch.course_name || "N/A"}</td>
                 <td>{batch.total_groups}</td>
                 <td>{batch.total_students}</td>
-                <td>{batch.created_at ? new Date(batch.created_at).toLocaleDateString() : "N/A"}</td>
+                <td>
+                  {batch.created_at
+                    ? new Date(batch.created_at).toLocaleDateString()
+                    : "N/A"}
+                </td>
                 <td>{batch.status || "Active"}</td>
                 <td>
                   <button

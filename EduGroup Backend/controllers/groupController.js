@@ -77,14 +77,12 @@ exports.getRecentGroups = (req, res) => {
   });
 };
 
-
-
-
+// ✅ Generate groups automatically
 // ✅ Generate groups automatically
 exports.generateGroups = (req, res) => {
   const userId = req.user.id;
   const {
-    courseId,            // ✅ now required
+    courseId,
     studentsPerGroup,
     numberOfGroups,
     genderBalance,
@@ -97,11 +95,11 @@ exports.generateGroups = (req, res) => {
   }
 
   const fetchStudentsQuery = `
-  SELECT s.id, s.index_number, s.first_name, s.last_name, s.gender
-  FROM student_courses sc
-  JOIN students s ON sc.student_id = s.id
-  WHERE sc.course_id = ?
-`;
+    SELECT s.id, s.index_number, s.first_name, s.last_name, s.gender
+    FROM student_courses sc
+    JOIN students s ON sc.student_id = s.id
+    WHERE sc.course_id = ?
+  `;
 
   db.query(fetchStudentsQuery, [courseId], (err, students) => {
     if (err) {
@@ -126,61 +124,88 @@ exports.generateGroups = (req, res) => {
 
     const batchId = uuidv4();
 
-    const groups = [];
-    for (let i = 0; i < students.length; i += groupSize) {
-      groups.push(students.slice(i, i + groupSize));
-    }
+    // ✅ INSERT into group_generation_history for this batch
+    const insertHistory = `
+      INSERT INTO group_generation_history
+      (id, batch_id, generation_method, parameters, generated_by, status)
+      VALUES (?, ?, ?, ?, ?, 'Active')
+    `;
 
-    const groupInserts = groups.map((grp, index) => {
-      return new Promise((resolve, reject) => {
-        const groupName = `Group ${index + 1}`;
-        const groupQuery = `
-          INSERT INTO \`groups\` (name, course_id, department_id, created_by, batch_id, generation_method, generation_parameters)
-          VALUES (?, ?, (SELECT department_id FROM users WHERE id = ?), ?, ?, ?, ?)
-        `;
-        const params = [
-          groupName,
-          courseId,   // ✅ now used correctly
-          userId,
-          userId,
-          batchId,
-          "Algorithm",
-          JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod })
-        ];
+    db.query(
+      insertHistory,
+      [
+        uuidv4(),                // id
+        batchId,                 // batch_id
+        "Algorithm",             // generation_method
+        JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod }),
+        userId                   // generated_by
+      ],
+      (err2) => {
+        if (err2) {
+          console.error("Error inserting group_generation_history:", err2);
+          return res.status(500).json({ message: "Error saving group history" });
+        }
 
-        db.query(groupQuery, params, (err, result) => {
-          if (err) return reject(err);
-          const groupId = result.insertId;
+        // Continue creating groups
+        const groups = [];
+        const groupInserts = [];
 
-          const memberValues = grp.map(s => [groupId, s.id, "member"]);
-          if (memberValues.length > 0) {
-            const memberQuery = `
-              INSERT INTO group_members (group_id, student_id, role)
-              VALUES ?
-            `;
-            db.query(memberQuery, [memberValues], (err2) => {
-              if (err2) return reject(err2);
-              resolve({ id: groupId, name: groupName, members: grp });
-            });
-          } else {
-            resolve({ id: groupId, name: groupName, members: [] });
-          }
+        for (let i = 0; i < students.length; i += groupSize) {
+          groups.push(students.slice(i, i + groupSize));
+        }
+
+        groups.forEach((grp, index) => {
+          groupInserts.push(
+            new Promise((resolve, reject) => {
+              const groupName = `Group ${index + 1}`;
+              const groupQuery = `
+                INSERT INTO \`groups\` (name, course_id, department_id, created_by, batch_id, generation_method, generation_parameters)
+                VALUES (?, ?, (SELECT department_id FROM users WHERE id = ?), ?, ?, ?, ?)
+              `;
+              const params = [
+                groupName,
+                courseId,
+                userId,
+                userId,
+                batchId,
+                "Algorithm",
+                JSON.stringify({ studentsPerGroup, numberOfGroups, genderBalance, academicBalance, distributionMethod })
+              ];
+
+              db.query(groupQuery, params, (err3, result) => {
+                if (err3) return reject(err3);
+                const groupId = result.insertId;
+
+                const memberValues = grp.map(s => [groupId, s.id, "member"]);
+                if (memberValues.length > 0) {
+                  const memberQuery = `INSERT INTO group_members (group_id, student_id, role) VALUES ?`;
+                  db.query(memberQuery, [memberValues], (err4) => {
+                    if (err4) return reject(err4);
+                    resolve({ id: groupId, name: groupName, members: grp });
+                  });
+                } else {
+                  resolve({ id: groupId, name: groupName, members: [] });
+                }
+              });
+            })
+          );
         });
-      });
-    });
 
-    Promise.all(groupInserts)
-      .then((createdGroups) => {
-        res.json({ batchId, groups: createdGroups });
-      })
-      .catch((error) => {
-        console.error("Error creating groups:", error);
-        res.status(500).json({ message: "Error generating groups" });
-      });
+        Promise.all(groupInserts)
+          .then((createdGroups) => {
+            res.json({ batchId, groups: createdGroups });
+          })
+          .catch((error) => {
+            console.error("Error creating groups:", error);
+            res.status(500).json({ message: "Error generating groups" });
+          });
+      }
+    );
   });
 };
 
-// ✅ Fetch all groups in a batch
+
+// ✅ Fetch all groups in a batch (with batch status)
 exports.getGroupsByBatch = (req, res) => {
   const userId = req.user.id;
   const { batchId } = req.params;
@@ -194,11 +219,13 @@ exports.getGroupsByBatch = (req, res) => {
       s.index_number,
       s.first_name,
       s.last_name,
-      s.gender
+      s.gender,
+      h.status AS batch_status   -- ✅ added batch status
     FROM \`groups\` g
     LEFT JOIN courses c ON g.course_id = c.id
     LEFT JOIN group_members gm ON g.id = gm.group_id
     LEFT JOIN students s ON gm.student_id = s.id
+    LEFT JOIN group_generation_history h ON g.batch_id = h.batch_id
     WHERE g.created_by = ? AND g.batch_id = ?
     ORDER BY g.id, s.index_number
   `;
@@ -209,8 +236,14 @@ exports.getGroupsByBatch = (req, res) => {
       return res.status(500).json({ message: "Error fetching groups" });
     }
 
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No groups found for this batch" });
+    }
+
     // ✅ Restructure into groups with member lists
     const grouped = {};
+    let batchStatus = results[0].batch_status || "Active"; // get status from history
+
     results.forEach(row => {
       if (!grouped[row.group_id]) {
         grouped[row.group_id] = {
@@ -229,10 +262,11 @@ exports.getGroupsByBatch = (req, res) => {
       }
     });
 
-    res.json(Object.values(grouped));
+    res.json(Object.values(grouped || {}));
+
+
   });
 };
-
 
 exports.getGroupDetails = (req, res) => {
   const { groupId } = req.params;
@@ -285,8 +319,6 @@ exports.getGroupDetails = (req, res) => {
     });
   });
 };
-
-
 // ✅ Get all groups history for lecturer
 exports.getGroupsHistory = (req, res) => {
   const userId = req.user.id;
@@ -316,3 +348,103 @@ exports.getGroupsHistory = (req, res) => {
     res.json(results);
   });
 };
+
+exports.deleteGroup = (req, res) => {
+  const { groupId } = req.params;
+  const userId = req.user.id;
+
+  // First delete group members
+  const deleteMembers = `DELETE FROM group_members WHERE group_id = ?`;
+
+  db.query(deleteMembers, [groupId], (err) => {
+    if (err) {
+      console.error("Error deleting group members:", err);
+      return res.status(500).json({ message: "Error deleting group members" });
+    }
+
+    // Now delete group
+    const deleteGroupQuery = `DELETE FROM \`groups\` WHERE id = ? AND created_by = ?`;
+    db.query(deleteGroupQuery, [groupId, userId], (err, result) => {
+      if (err) {
+        console.error("Error deleting group:", err);
+        return res.status(500).json({ message: "Error deleting group" });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Group not found or not owned by user" });
+      }
+      res.json({ message: "Group deleted successfully" });
+    });
+  });
+};
+
+exports.updateBatchStatus = (req, res) => {
+  const { batchId } = req.params;
+  const { status } = req.body;
+
+  console.log("BODY DEBUG:", req.body);
+  console.log("batchId received:", batchId)
+
+  const query = `
+    UPDATE group_generation_history 
+    SET status = ? 
+    WHERE batch_id = ?`;
+
+  db.query(query, [status, batchId], (err, result) => {
+    if (err) {
+      console.error("Error updating batch status:", err);
+      return res.status(500).json({ message: "Error updating batch status" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
+    res.json({ message: "Batch status updated successfully" });
+  });
+};
+
+// ✅ Delete an entire batch (groups + members + history)
+exports.deleteBatch = (req, res) => {
+  const { batchId } = req.params;
+  const userId = req.user.id;
+
+  // Step 1: Delete group members
+  const deleteMembersQuery = `
+    DELETE gm FROM group_members gm
+    JOIN \`groups\` g ON gm.group_id = g.id
+    WHERE g.batch_id = ? AND g.created_by = ?
+  `;
+
+  db.query(deleteMembersQuery, [batchId, userId], (err) => {
+    if (err) {
+      console.error("Error deleting group members for batch:", err);
+      return res.status(500).json({ message: "Error deleting group members" });
+    }
+
+    // Step 2: Delete groups
+    const deleteGroupsQuery = `
+      DELETE FROM \`groups\` WHERE batch_id = ? AND created_by = ?
+    `;
+    db.query(deleteGroupsQuery, [batchId, userId], (err2) => {
+      if (err2) {
+        console.error("Error deleting groups for batch:", err2);
+        return res.status(500).json({ message: "Error deleting groups" });
+      }
+
+      // Step 3: Delete group_generation_history
+      const deleteHistoryQuery = `
+        DELETE FROM group_generation_history WHERE batch_id = ?
+      `;
+      db.query(deleteHistoryQuery, [batchId], (err3) => {
+        if (err3) {
+          console.error("Error deleting batch history:", err3);
+          return res.status(500).json({ message: "Error deleting batch history" });
+        }
+
+        res.json({ message: "Batch deleted successfully" });
+      });
+    });
+  });
+};
+
+

@@ -121,8 +121,7 @@ const CreateGroups = () => {
     );
 
     // ✅ Send data to preview page
-navigate("/previewgroups", { state: { groups: res.data.groups, batchId: res.data.batchId } });
-
+navigate(`/previewgroups/${res.data.batchId}`);
   } catch (err) {
     console.error("Error generating groups:", err);
     alert(err.response?.data?.message || "Failed to generate groups");
