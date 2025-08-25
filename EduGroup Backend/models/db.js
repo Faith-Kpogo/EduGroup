@@ -9,8 +9,21 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-  if (err) throw err;
-  console.log('Database connected!');
+  if (err) {
+    console.error('Database connection error:', err);
+    throw err;
+  }
+  console.log('Database connected successfully!');
+});
+
+// Handle connection errors
+db.on('error', (err) => {
+  console.error('Database error:', err);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.log('Database connection was closed. Reconnecting...');
+  } else {
+    throw err;
+  }
 });
 
 module.exports = db;

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import '../Styles/Sidebar.css';
-import { LogOut, LayoutDashboard, Users, History, Settings, X } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, History, Settings, X, BarChart3 } from 'lucide-react';
 import Logo from './Logo';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -59,6 +59,14 @@ const Sidebar = ({ isOpen, onClose }) => {
           <Settings size={18} className="me-2" /> Settings
         </NavLink>
       </li>
+      {/* Admin link - only show for admin users */}
+      {localStorage.getItem('isAdmin') === 'true' && (
+        <li className="mb-2">
+          <NavLink to="/admin" className={({ isActive }) => isActive ? 'active-link' : 'text-decoration-none'}>
+            <BarChart3 size={18} className="me-2" /> Admin
+          </NavLink>
+        </li>
+      )}
     </ul>
   );
 

@@ -10,6 +10,7 @@ import GroupsHistory from './pages/GroupsHistory';
 import Settings from './pages/Settings';
 import GroupDetails from './pages/GroupDetails';
 import PreviewGroups from './pages/PreviewGroups';
+import Admin from './pages/Admin';
 
 function App() {
    useEffect(() => {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/previewgroups/:batchId" element={<PreviewGroups />} />
         <Route path="/groupdetails/:groupId" element={<GroupDetails />} />
+        <Route path="/admin" element={<Admin />} />
 
       </Routes>
     </Router>

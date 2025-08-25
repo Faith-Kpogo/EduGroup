@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../models/db');
 
+const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret"; // ✅ use env var or fallback
 
 exports.signup = (req, res) => {
   const { first_name, last_name, email, password } = req.body;
@@ -12,8 +13,8 @@ exports.signup = (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(password, 10);
   const sql = `
-    INSERT INTO users (first_name, last_name, email, password_hash)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO users (first_name, last_name, email, password_hash, role)
+    VALUES (?, ?, ?, ?, 'lecturer')
   `;
 
   db.query(sql, [first_name, last_name, email, hashedPassword], (err, result) => {
@@ -25,7 +26,12 @@ exports.signup = (req, res) => {
       return res.status(500).json({ message: 'Error creating user' });
     }
 
-    const token = jwt.sign({ id: result.insertId, email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: result.insertId, email, role: 'lecturer' },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
     res.status(201).json({ message: 'User created successfully', token });
   });
 };
@@ -33,6 +39,24 @@ exports.signup = (req, res) => {
 exports.login = (req, res) => {
   const { email, password } = req.body;
 
+  // Admin login
+  if (email === 'admin@edugroup.com' && password === 'admin123') {
+    const token = jwt.sign(
+      { id: 'admin', email: 'admin@edugroup.com', isAdmin: true },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    return res.json({
+      token,
+      first_name: 'Admin',
+      last_name: 'User',
+      isAdmin: true,
+      departmentSelected: false
+    });
+  }
+
+  // Regular user login
   const sql = `SELECT * FROM users WHERE email = ?`;
   db.query(sql, [email], (err, results) => {
     if (err) return res.status(500).json({ message: 'Server error' });
@@ -40,15 +64,16 @@ exports.login = (req, res) => {
 
     const user = results[0];
 
-    // Check password
     if (!bcrypt.compareSync(password, user.password_hash)) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Create JWT
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: false },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-    // Check if user already has a department
     const deptQuery = `SELECT * FROM user_departments WHERE user_id = ? LIMIT 1`;
     db.query(deptQuery, [user.id], (deptErr, deptResults) => {
       if (deptErr) return res.status(500).json({ message: 'Error checking department' });
@@ -57,6 +82,7 @@ exports.login = (req, res) => {
         token,
         first_name: user.first_name,
         last_name: user.last_name,
+        isAdmin: false,
         departmentSelected: deptResults.length > 0
       });
     });

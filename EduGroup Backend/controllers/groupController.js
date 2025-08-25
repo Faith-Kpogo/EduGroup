@@ -124,10 +124,26 @@ exports.generateGroups = (req, res) => {
     // Shuffle students
     students.sort(() => Math.random() - 0.5);
 
-    // ✅ Handle keepTogether
+    // ✅ Handle keepTogether - distribute students while keeping specified ones together
     let groupedStudents = [];
     let remainingStudents = [...students];
-
+    
+    // Calculate how many groups we'll have and ensure proper group sizing
+    let totalGroups;
+    if (studentsPerGroup) {
+      totalGroups = Math.ceil(students.length / studentsPerGroup);
+      // Ensure groupSize is not exceeded
+      groupSize = Math.min(groupSize, studentsPerGroup);
+    } else if (numberOfGroups) {
+      totalGroups = numberOfGroups;
+      groupSize = Math.ceil(students.length / numberOfGroups);
+    }
+    
+    // Initialize empty groups
+    for (let i = 0; i < totalGroups; i++) {
+      groupedStudents.push([]);
+    }
+    
     if (Array.isArray(keepTogether) && keepTogether.length > 0) {
       // Match students by index_number or name
       const matched = remainingStudents.filter(s =>
@@ -136,17 +152,51 @@ exports.generateGroups = (req, res) => {
       );
 
       if (matched.length > 0) {
-        // Put them in the first group
-        groupedStudents.push(matched);
+        // Check if keepTogether students exceed group size
+        if (matched.length > groupSize) {
+          return res.status(400).json({ 
+            message: `Cannot keep ${matched.length} students together. Maximum group size is ${groupSize}.` 
+          });
+        }
+        
+        // Find the first group that can accommodate all keepTogether students
+        let targetGroupIndex = 0;
+        for (let i = 0; i < totalGroups; i++) {
+          if (groupedStudents[i].length + matched.length <= groupSize) {
+            targetGroupIndex = i;
+            break;
+          }
+        }
+        
+        // Place the keepTogether students in the target group
+        groupedStudents[targetGroupIndex] = [...matched];
         // Remove them from remaining pool
         remainingStudents = remainingStudents.filter(s => !matched.includes(s));
       }
     }
-
-    // Now create the rest of the groups
-    for (let i = 0; i < remainingStudents.length; i += groupSize) {
-      groupedStudents.push(remainingStudents.slice(i, i + groupSize));
+    
+    // Distribute remaining students across groups, respecting group size limits
+    let currentGroupIndex = 0;
+    for (let i = 0; i < remainingStudents.length; i++) {
+      // Find a group that has space
+      let attempts = 0;
+      while (groupedStudents[currentGroupIndex].length >= groupSize && attempts < totalGroups) {
+        currentGroupIndex = (currentGroupIndex + 1) % totalGroups;
+        attempts++;
+      }
+      
+      // If no group has space, create a new group
+      if (groupedStudents[currentGroupIndex].length >= groupSize) {
+        groupedStudents.push([]);
+        currentGroupIndex = groupedStudents.length - 1;
+      }
+      
+      groupedStudents[currentGroupIndex].push(remainingStudents[i]);
+      currentGroupIndex = (currentGroupIndex + 1) % totalGroups;
     }
+    
+    // Filter out empty groups
+    groupedStudents = groupedStudents.filter(group => group.length > 0);
 
     const batchId = uuidv4();
 
@@ -220,6 +270,7 @@ exports.generateGroups = (req, res) => {
     );
   });
 };
+
 
 
 

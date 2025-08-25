@@ -60,9 +60,14 @@ const Login = () => {
       if (data.first_name && data.last_name) {
         localStorage.setItem('userName', `${data.first_name} ${data.last_name}`);
       }
+      
+      // ✅ Store admin status
+      localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
 
-      // ✅ Navigate based on department selection
-      if (data.departmentSelected) {
+      // ✅ Navigate based on admin status or department selection
+      if (data.isAdmin) {
+        navigate('/admin');
+      } else if (data.departmentSelected) {
         navigate('/dashboard');
       } else {
         navigate('/department');

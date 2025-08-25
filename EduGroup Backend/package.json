@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-db": "node test_database.js",
+    "create-admin": "node create_admin_user.js"
   },
   "keywords": [],
   "author": "",
