@@ -11,6 +11,9 @@ import Settings from './pages/Settings';
 import GroupDetails from './pages/GroupDetails';
 import PreviewGroups from './pages/PreviewGroups';
 import Admin from './pages/Admin';
+import CheckEmail from "./pages/CheckEmail";
+import VerifySuccess from "./pages/VerifySuccess";
+import VerifyFailed from "./pages/VerifyFailed";
 
 function App() {
    useEffect(() => {
@@ -36,6 +39,9 @@ function App() {
         <Route path="/previewgroups/:batchId" element={<PreviewGroups />} />
         <Route path="/groupdetails/:groupId" element={<GroupDetails />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/check-email" element={<CheckEmail />} />
+        <Route path="/verify-success" element={<VerifySuccess />} />
+        <Route path="/verify-failed" element={<VerifyFailed />} />
 
       </Routes>
     </Router>

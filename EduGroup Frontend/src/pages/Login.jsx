@@ -32,51 +32,56 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setGeneralError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setGeneralError('');
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        setGeneralError(data.message || 'Login failed');
-        return;
-      }
+    if (!response.ok) {
+  setGeneralError(data.message || 'Login failed');
+  return;
+}
+if (data.token) {
+  localStorage.setItem('token', data.token);
+  console.log("✅ Token saved to localStorage:", data.token);
+}
 
-      // ✅ Save token and user info from backend
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userEmail', email);
-      if (data.first_name && data.last_name) {
-        localStorage.setItem('userName', `${data.first_name} ${data.last_name}`);
-      }
-      
-      // ✅ Store admin status
-      localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
-
-      // ✅ Navigate based on admin status or department selection
-      if (data.isAdmin) {
-        navigate('/admin');
-      } else if (data.departmentSelected) {
-        navigate('/dashboard');
-      } else {
-        navigate('/department');
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setGeneralError('An error occurred. Please try again.');
+    // ✅ Save token and user info from backend
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userEmail', data.email || email);
+    if (data.first_name && data.last_name) {
+      localStorage.setItem('userName', `${data.first_name} ${data.last_name}`);
     }
-  };
+
+    // ✅ Store admin status
+    localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
+
+    // ✅ Navigate based on admin/department status
+    if (data.isAdmin) {
+      navigate('/admin');
+    } else if (data.departmentSelected) {
+      navigate('/dashboard');
+    } else {
+      navigate('/department');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    setGeneralError('An error occurred. Please try again.');
+  }
+};
+
 
   return (
     <div className="login-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
