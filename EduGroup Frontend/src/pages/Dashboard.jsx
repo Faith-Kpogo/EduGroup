@@ -1,8 +1,8 @@
 // Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import "../Styles/Dashboard.css";
-import { Plus, Upload, Download, ListTodo, Trash2, Pencil } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, Upload, ListTodo, Trash2, Pencil } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import Table from "../components/Table";
 import AddTaskModal from "../components/AddTask";
 import MainLayout from "../components/MainLayout";
@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
 
   const userName = localStorage.getItem("userName");
+  const navigate = useNavigate();
 
   // ✅ Fetch dashboard stats
   const fetchStats = async () => {
@@ -88,6 +89,41 @@ const Dashboard = () => {
     }
   };
 
+  // ✅ Import CSV/Excel (no course) then redirect to Create Groups
+  const handleImportData = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv,.xlsx,.xls";
+    input.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await axios.post("http://localhost:5000/api/courses/import", form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Save import metadata
+        localStorage.setItem("importedCourseId", String(res.data.courseId));
+        localStorage.setItem("importedCourseName", res.data.courseName || "Imported Course");
+        localStorage.setItem("importedFileName", file.name);
+
+        // Go to Create Groups to choose parameters
+        navigate("/creategroups");
+      } catch (err) {
+        console.error("Import failed:", err);
+        window.alert("Import failed. Please ensure the CSV/Excel file is valid.");
+      }
+    };
+    input.click();
+  };
+
   // Initial fetch
   useEffect(() => {
     fetchStats();
@@ -133,13 +169,9 @@ const Dashboard = () => {
                 Create New Group
               </button>
             </Link>
-            <button className="btn btn2 d-flex align-items-center gap-2">
+            <button className="btn btn2 d-flex align-items-center gap-2" onClick={handleImportData}>
               <Upload size={18} />
               Import Data
-            </button>
-            <button className="btn btn2 d-flex align-items-center gap-2">
-              <Download size={18} />
-              Export Data
             </button>
             <button
               className="btn mainbtn d-flex align-items-center gap-2"

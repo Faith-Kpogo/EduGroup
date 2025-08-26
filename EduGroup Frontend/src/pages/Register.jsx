@@ -50,7 +50,7 @@ function Signup() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!validate()) return;
@@ -74,19 +74,11 @@ function Signup() {
     const data = await response.json();
 
     if (response.ok) {
-      console.log('Account created successfully!');
+      console.log('Signup successful, verification email sent.');
 
-      // ✅ Save JWT token for future requests
-      localStorage.setItem('token', data.token);
-
-      // ✅ Also store user info if needed
-      const user = {
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-      };
-      localStorage.setItem('userName', user.name);
-
-      navigate('/department');
+      // ❌ Do NOT save token or auto-login
+      // ✅ Redirect to "check your email" page instead
+      navigate('/check-email', { state: { email } });
     } else {
       alert(data.message || 'Signup failed');
     }
@@ -95,6 +87,8 @@ function Signup() {
     alert('Something went wrong while signing up');
   }
 };
+
+
 
 
 

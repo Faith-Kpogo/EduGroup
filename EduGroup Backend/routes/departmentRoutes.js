@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const departmentController = require('../controllers/departmentController');
 const authenticateToken = require('../middleware/auth'); // JWT middleware
+const db = require('../models/db'); // <-- you forgot to import db for /check
 
 // Get all departments
 router.get('/', departmentController.getDepartments);
@@ -9,8 +10,7 @@ router.get('/', departmentController.getDepartments);
 // Select department (protected route)
 router.post('/select', authenticateToken, departmentController.selectDepartment);
 
-module.exports = router;
-// routes/departmentRoutes.js
+// Check if user already selected department
 router.get('/check', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const sql = `SELECT * FROM user_departments WHERE user_id = ? LIMIT 1`;
@@ -23,3 +23,5 @@ router.get('/check', authenticateToken, (req, res) => {
     }
   });
 });
+
+module.exports = router;

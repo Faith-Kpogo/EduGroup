@@ -5,9 +5,11 @@ import '../Styles/CreateGroups.css';
 import MainLayout from '../components/MainLayout';
 import '../App.css';
 import axios from "axios";
+import { useToast } from '../components/Toast';
 
 const CreateGroups = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [keepTogether, setKeepTogether] = useState(false);
   const [studentsTogether, setStudentsTogether] = useState([]);
@@ -22,7 +24,8 @@ const CreateGroups = () => {
   const [genderBalance, setGenderBalance] = useState(false);
   const [academicBalance, setAcademicBalance] = useState(false);
   const [allStudents, setAllStudents] = useState([]);
-const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [importedFileName, setImportedFileName] = useState("");
 
 
   // ✅ Feedback states
@@ -31,6 +34,16 @@ const [searchResults, setSearchResults] = useState([]);
 
   // ✅ Courses state
   const [courses, setCourses] = useState([]);
+
+  // Pick up last import metadata
+  useEffect(() => {
+    const storedCourseId = localStorage.getItem("importedCourseId");
+    const storedFileName = localStorage.getItem("importedFileName");
+    if (storedCourseId) {
+      setCourseId(storedCourseId);
+    }
+    if (storedFileName) setImportedFileName(storedFileName);
+  }, []);
 
   // Fetch courses whenever level changes
   useEffect(() => {
@@ -51,8 +64,14 @@ const [searchResults, setSearchResults] = useState([]);
         setCourses(res.data);
 
         // Reset courseId only if previously selected course doesn't exist
-        if (!res.data.find(c => c.id === courseId)) {
-          setCourseId("");
+        if (!res.data.find(c => String(c.id) === String(courseId))) {
+          // keep imported id if present
+          const storedCourseId = localStorage.getItem("importedCourseId");
+          if (storedCourseId && res.data.find(c => String(c.id) === String(storedCourseId))) {
+            setCourseId(storedCourseId);
+          } else {
+            setCourseId("");
+          }
         }
       } catch (err) {
         console.error("Failed to fetch courses:", err);
@@ -97,12 +116,12 @@ const [searchResults, setSearchResults] = useState([]);
   const handleGenerateGroups = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("You must be logged in.");
+      toast.error("You must be logged in.");
       return;
     }
 
     if (!courseId) {
-      alert("Please select a course before generating groups.");
+      toast.warning("Please select a course before generating groups.");
       return;
     }
 
@@ -127,7 +146,7 @@ const [searchResults, setSearchResults] = useState([]);
       navigate(`/previewgroups/${res.data.batchId}`);
     } catch (err) {
       console.error("Error generating groups:", err);
-      alert(err.response?.data?.message || "Failed to generate groups");
+      toast.error(err.response?.data?.message || "Failed to generate groups");
     }
   };
 
@@ -195,6 +214,38 @@ const handleSelectStudent = (student) => {
   setSearchResults([]);
 };
 
+// ✅ Import CSV without selecting a course
+const handleUploadData = () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".csv,.xlsx,.xls";
+  input.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await axios.post("http://localhost:5000/api/courses/import", form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // store metadata and preselect course
+      localStorage.setItem("importedCourseId", String(res.data.courseId));
+      localStorage.setItem("importedCourseName", res.data.courseName || "Imported Course");
+      localStorage.setItem("importedFileName", file.name);
+      setImportedFileName(file.name);
+      setCourseId(String(res.data.courseId));
+      toast.success("File imported. Course selected automatically.");
+    } catch (err) {
+      console.error("Import failed:", err);
+      toast.error("Import failed. Ensure CSV/Excel is valid.");
+    }
+  };
+  input.click();
+};
+
   return (
     <MainLayout>
       <div className="d-flex">
@@ -205,6 +256,11 @@ const handleSelectStudent = (student) => {
           <div className="create-groups-container bg-white p-4 rounded shadow-sm">
             {errors.general && (
               <div className="alert alert-danger py-2">{errors.general}</div>
+            )}
+
+            {/* Imported file info */}
+            {importedFileName && (
+              <div className="alert alert-info py-2 mb-3">Imported file: {importedFileName}</div>
             )}
 
             <h5>Select Course and Students</h5>
@@ -219,7 +275,7 @@ const handleSelectStudent = (student) => {
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
                   >
-                    <option value="">-- Select Level --</option>
+                    <option value="">Select Level</option>
                     <option value="100">Level 100</option>
                     <option value="200">Level 200</option>
                     <option value="300">Level 300</option>
@@ -238,7 +294,7 @@ const handleSelectStudent = (student) => {
                     value={courseId}
                     onChange={(e) => setCourseId(e.target.value)}
                   >
-                    <option value="">-- Select Course --</option>
+                    <option value="">Select Course</option>
                     {courses.map((course) => (
                       <option key={course.id} value={course.id}>
                         {course.course_code} - {course.course_name}
@@ -416,7 +472,7 @@ const handleSelectStudent = (student) => {
                 <button className="btn btn-outline-primary cursor-none">Step 1/2</button>
               </div>
               <div className='d-flex gap-2 ms-auto'>
-                <button className="btn btn-outline-secondary me-2" disabled={loading}>
+                <button className="btn btn-outline-secondary me-2" onClick={handleUploadData} disabled={loading}>
                   <Upload size={16} className="me-1" /> Upload Student Data
                 </button>
                 <button className="btn mainbtn" onClick={handleGenerateGroups} disabled={loading}>

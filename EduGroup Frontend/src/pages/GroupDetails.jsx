@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Edit, MoreVertical } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import axios from 'axios';
+import { useToast } from '../components/Toast';
 
 const GroupDetails = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [group, setGroup] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -65,11 +67,11 @@ const GroupDetails = () => {
         await axios.delete(`http://localhost:5000/api/groups/${group.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        alert("Group deleted successfully");
+        toast.success("Group deleted successfully");
         navigate("/groupshistory");
       } catch (err) {
         console.error("Error deleting group:", err);
-        alert("Failed to delete group");
+        toast.error("Failed to delete group");
       }
     }
   };

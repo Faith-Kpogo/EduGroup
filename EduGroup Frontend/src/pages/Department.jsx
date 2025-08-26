@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 import axios from 'axios';
 import "../App.css";
+import { useToast } from '../components/Toast';
 
 function ChooseDepartment() {
+  const toast = useToast();
   const [departments, setDepartments] = useState([]);
   const [selectedDepartmentCode, setSelectedDepartmentCode] = useState('');
   const navigate = useNavigate();
@@ -17,19 +19,22 @@ function ChooseDepartment() {
       })
       .catch(error => {
         console.error('Failed to fetch departments:', error);
-        alert('Could not load departments');
+        toast.error('Could not load departments');
       });
   }, []);
 
-  const handleContinue = async () => {
+const handleContinue = async () => {
   if (!selectedDepartmentCode) {
-    alert('Please select a department');
+    toast.warning('Please select a department');
     return;
   }
 
   const token = localStorage.getItem('token');
+  console.log("🔑 Token from localStorage:", token);
+
   if (!token) {
-    alert('You are not logged in');
+    toast.error('You are not logged in');
+    navigate("/"); // back to login
     return;
   }
 
@@ -40,13 +45,15 @@ function ChooseDepartment() {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    console.log(response.data.message);
+    console.log("✅ Department selection response:", response.data);
+    toast.success("Department selected successfully!");
     navigate('/dashboard');
   } catch (error) {
-    console.error('Error selecting department:', error);
-    alert('Failed to select department');
+    console.error('❌ Error selecting department:', error.response || error);
+    toast.error(error.response?.data?.message || 'Failed to select department');
   }
 };
+
 
 
   return (

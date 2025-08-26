@@ -54,17 +54,16 @@ exports.getRecentGroups = (req, res) => {
   const query = `
     SELECT 
       g.batch_id,
+      MIN(g.created_at) AS created_at,
       c.course_name,
-      g.created_at,
-      g.status,
       COUNT(DISTINCT g.id) AS total_groups,
       COUNT(DISTINCT gm.student_id) AS total_students
     FROM \`groups\` g
     LEFT JOIN group_members gm ON g.id = gm.group_id
     LEFT JOIN courses c ON g.course_id = c.id
     WHERE g.created_by = ?
-    GROUP BY g.batch_id, c.course_name, g.created_at, g.status
-    ORDER BY g.created_at DESC
+    GROUP BY g.batch_id, c.course_name
+    ORDER BY created_at DESC
     LIMIT 5
   `;
 
@@ -472,12 +471,217 @@ exports.updateBatchStatus = (req, res) => {
   });
 };
 
-// ✅ Delete an entire batch (groups + members + history)
+// ✅ Rename a specific group (owned by lecturer)
+exports.renameGroup = (req, res) => {
+  const userId = req.user.id;
+  const { groupId } = req.params;
+  const { name } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ message: "New group name is required" });
+  }
+
+  const sql = `UPDATE \`groups\` SET name = ? WHERE id = ? AND created_by = ?`;
+  db.query(sql, [name.trim(), groupId, userId], (err, result) => {
+    if (err) {
+      console.error("Error renaming group:", err);
+      return res.status(500).json({ message: "Error renaming group" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Group not found or not owned by user" });
+    }
+    res.json({ message: "Group renamed successfully" });
+  });
+};
+
+// ✅ Resize groups within a batch by rebalancing members
+// Accepts either studentsPerGroup or numberOfGroups
+exports.resizeBatchGroups = (req, res) => {
+  const userId = req.user.id;
+  const { batchId } = req.params;
+  const { studentsPerGroup, numberOfGroups } = req.body;
+
+  if (!studentsPerGroup && !numberOfGroups) {
+    return res.status(400).json({ message: "Provide studentsPerGroup or numberOfGroups" });
+  }
+
+  // Fetch all members in batch grouped by group
+  const fetchSql = `
+    SELECT g.id AS group_id, gm.student_id
+    FROM \`groups\` g
+    JOIN group_members gm ON gm.group_id = g.id
+    WHERE g.batch_id = ? AND g.created_by = ?
+  `;
+
+  db.query(fetchSql, [batchId, userId], (err, rows) => {
+    if (err) {
+      console.error("Error fetching batch members:", err);
+      return res.status(500).json({ message: "Error fetching batch members" });
+    }
+    if (!rows.length) {
+      return res.status(404).json({ message: "No groups found for this batch" });
+    }
+
+    const studentIds = rows.map(r => r.student_id);
+    const uniqueStudents = [...new Set(studentIds)];
+
+    let targetGroupSize;
+    let totalGroups;
+    if (studentsPerGroup) {
+      targetGroupSize = parseInt(studentsPerGroup, 10);
+      totalGroups = Math.ceil(uniqueStudents.length / targetGroupSize);
+    } else {
+      totalGroups = parseInt(numberOfGroups, 10);
+      targetGroupSize = Math.ceil(uniqueStudents.length / totalGroups);
+    }
+
+    // Shuffle students
+    uniqueStudents.sort(() => Math.random() - 0.5);
+
+    // Partition
+    const partitions = Array.from({ length: totalGroups }, () => []);
+    uniqueStudents.forEach((sid, idx) => {
+      partitions[idx % totalGroups].push(sid);
+    });
+
+    // Fetch existing group ids ordered
+    const fetchGroupIdsSql = `SELECT id FROM \`groups\` WHERE batch_id = ? AND created_by = ? ORDER BY id`;
+    db.query(fetchGroupIdsSql, [batchId, userId], (gidErr, groupRows) => {
+      if (gidErr) {
+        console.error("Error fetching group ids:", gidErr);
+        return res.status(500).json({ message: "Error updating groups" });
+      }
+
+      if (groupRows.length === 0) {
+        return res.status(404).json({ message: "No groups to update" });
+      }
+
+      const existingGroupIds = groupRows.map(r => r.id);
+
+      const adjustGroups = (cb) => {
+        if (existingGroupIds.length === totalGroups) return cb();
+        if (existingGroupIds.length < totalGroups) {
+          // create additional groups
+          const toCreate = totalGroups - existingGroupIds.length;
+          let created = 0;
+          const templateId = existingGroupIds[0];
+          const insertSql = `INSERT INTO \`groups\` (name, batch_id, created_by, course_id, department_id, generation_method) 
+                             SELECT ?, ?, ?, g.course_id, g.department_id, 'Resize' FROM \`groups\` g WHERE g.id = ? LIMIT 1`;
+          for (let i = 0; i < toCreate; i++) {
+            const name = `Group ${existingGroupIds.length + i + 1}`;
+            db.query(insertSql, [name, batchId, userId, templateId], (insErr, insRes) => {
+              if (insErr) {
+                console.error("Error creating additional group:", insErr);
+                return res.status(500).json({ message: "Error creating additional groups" });
+              }
+              existingGroupIds.push(insRes.insertId);
+              created++;
+              if (created === toCreate) cb();
+            });
+          }
+        } else {
+          // delete surplus groups (and members)
+          const toDeleteIds = existingGroupIds.slice(totalGroups);
+          if (toDeleteIds.length === 0) return cb();
+          const delMembersSql = `DELETE FROM group_members WHERE group_id IN (?)`;
+          db.query(delMembersSql, [toDeleteIds], (dmErr) => {
+            if (dmErr) {
+              console.error("Error deleting surplus members:", dmErr);
+              return res.status(500).json({ message: "Error deleting surplus members" });
+            }
+            const delGroupsSql = `DELETE FROM \`groups\` WHERE id IN (?)`;
+            db.query(delGroupsSql, [toDeleteIds], (dgErr) => {
+              if (dgErr) {
+                console.error("Error deleting surplus groups:", dgErr);
+                return res.status(500).json({ message: "Error deleting surplus groups" });
+              }
+              existingGroupIds.length = totalGroups;
+              cb();
+            });
+          });
+        }
+      };
+
+      adjustGroups(() => {
+        // Clear all members in this batch
+        const delSql = `DELETE gm FROM group_members gm JOIN \`groups\` g ON gm.group_id = g.id WHERE g.batch_id = ? AND g.created_by = ?`;
+        db.query(delSql, [batchId, userId], (delErr) => {
+          if (delErr) {
+            console.error("Error clearing old members:", delErr);
+            return res.status(500).json({ message: "Error clearing old members" });
+          }
+
+          // Reinsert members per partitions
+          const allInserts = [];
+          partitions.forEach((part, idx) => {
+            const groupId = existingGroupIds[idx];
+            part.forEach(studentId => {
+              allInserts.push([groupId, studentId, 'member']);
+            });
+          });
+
+          if (allInserts.length === 0) {
+            return res.json({ message: "Resize complete", groups: totalGroups, membersAssigned: 0 });
+          }
+
+          const insMembersSql = `INSERT INTO group_members (group_id, student_id, role) VALUES ?`;
+          db.query(insMembersSql, [allInserts], (insErr2, insRes2) => {
+            if (insErr2) {
+              console.error("Error inserting resized members:", insErr2);
+              return res.status(500).json({ message: "Error assigning members" });
+            }
+
+            return res.json({ message: "Resize complete", groups: totalGroups, membersAssigned: insRes2.affectedRows });
+          });
+        });
+      });
+    });
+  });
+};
+
+exports.updateBatchCourseName = (req, res) => {
+  const userId = req.user.id;
+  const { batchId } = req.params;
+  const { courseName } = req.body;
+
+  if (!courseName || !courseName.trim()) {
+    return res.status(400).json({ message: "Course name is required" });
+  }
+
+  // Find the course_id associated with this batch and ensure ownership
+  const findSql = `
+    SELECT DISTINCT g.course_id
+    FROM \`groups\` g
+    WHERE g.batch_id = ? AND g.created_by = ?
+    LIMIT 1
+  `;
+
+  db.query(findSql, [batchId, userId], (fErr, rows) => {
+    if (fErr) {
+      console.error("Error finding batch course:", fErr);
+      return res.status(500).json({ message: "Error updating course name" });
+    }
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
+    const courseId = rows[0].course_id;
+    const updSql = `UPDATE courses SET course_name = ? WHERE id = ?`;
+    db.query(updSql, [courseName.trim(), courseId], (uErr, uRes) => {
+      if (uErr) {
+        console.error("Error updating course name:", uErr);
+        return res.status(500).json({ message: "Error updating course name" });
+      }
+      return res.json({ message: "Course name updated", courseId });
+    });
+  });
+};
+
 exports.deleteBatch = (req, res) => {
   const { batchId } = req.params;
   const userId = req.user.id;
 
-  // Step 1: Delete group members
+  // Step 1: Delete group members belonging to groups in this batch and owned by user
   const deleteMembersQuery = `
     DELETE gm FROM group_members gm
     JOIN \`groups\` g ON gm.group_id = g.id
@@ -490,20 +694,16 @@ exports.deleteBatch = (req, res) => {
       return res.status(500).json({ message: "Error deleting group members" });
     }
 
-    // Step 2: Delete groups
-    const deleteGroupsQuery = `
-      DELETE FROM \`groups\` WHERE batch_id = ? AND created_by = ?
-    `;
+    // Step 2: Delete groups in this batch owned by user
+    const deleteGroupsQuery = `DELETE FROM \`groups\` WHERE batch_id = ? AND created_by = ?`;
     db.query(deleteGroupsQuery, [batchId, userId], (err2) => {
       if (err2) {
         console.error("Error deleting groups for batch:", err2);
         return res.status(500).json({ message: "Error deleting groups" });
       }
 
-      // Step 3: Delete group_generation_history
-      const deleteHistoryQuery = `
-        DELETE FROM group_generation_history WHERE batch_id = ?
-      `;
+      // Step 3: Delete batch history
+      const deleteHistoryQuery = `DELETE FROM group_generation_history WHERE batch_id = ?`;
       db.query(deleteHistoryQuery, [batchId], (err3) => {
         if (err3) {
           console.error("Error deleting batch history:", err3);
