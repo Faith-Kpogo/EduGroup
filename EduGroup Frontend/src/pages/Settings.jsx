@@ -11,7 +11,11 @@ const Settings = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // ✅ User state
-  const [user, setUser] = useState({ email: "", name: "", department: "" });
+  const [user, setUser] = useState({ 
+    email: "", 
+    name: "", 
+    department: localStorage.getItem('userDepartment') || "" 
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -22,7 +26,10 @@ const Settings = () => {
         const res = await axios.get("http://localhost:5000/api/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUser(res.data);
+        setUser({
+          ...res.data,
+          department: res.data.department || localStorage.getItem('userDepartment') || ""
+        });
       } catch (err) {
         console.error("Error fetching user info:", err);
       }
