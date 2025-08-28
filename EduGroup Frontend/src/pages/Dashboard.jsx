@@ -19,7 +19,9 @@ const Dashboard = () => {
     groupedStudents: 0,
   });
   const [editingTask, setEditingTask] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [showDeleteTaskModal, setShowDeleteTaskModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [deletingTask, setDeletingTask] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
 
@@ -76,17 +78,19 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
-
     try {
+      setDeletingTask(true);
       await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTasks(tasks.filter((t) => t.id !== taskId));
-      setConfirmDelete(null);
+      setShowDeleteTaskModal(false);
+      setTaskToDelete(null);
       fetchTasks();
     } catch (err) {
       console.error("Failed to delete task:", err);
+    } finally {
+      setDeletingTask(false);
     }
   };
 
@@ -235,7 +239,10 @@ const Dashboard = () => {
                               width: "34px",
                               height: "34px",
                             }}
-                            onClick={() => handleDeleteTask(task.id)}
+                            onClick={() => {
+                              setTaskToDelete(task);
+                              setShowDeleteTaskModal(true);
+                            }}
                             title="Delete Task"
                           >
                             <Trash2 size={18} />
@@ -263,6 +270,57 @@ const Dashboard = () => {
         task={editingTask}
         onTaskUpdated={fetchTasks}
       />
+
+      {/* Delete Task Confirmation Modal */}
+      {showDeleteTaskModal && taskToDelete && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <div className="delete-modal-header">
+              <h4>Delete Task</h4>
+            </div>
+            
+            <div className="delete-modal-body">
+              <p className="delete-warning">
+                Are you sure you want to delete this task?
+              </p>
+              <div className="delete-note">
+                <i className="fas fa-info-circle me-2"></i>
+                This action cannot be undone. The task will be permanently deleted.
+              </div>
+            </div>
+            
+            <div className="delete-modal-footer">
+              <button 
+                className="btn btn-outline-secondary" 
+                onClick={() => {
+                  setShowDeleteTaskModal(false);
+                  setTaskToDelete(null);
+                }}
+                disabled={deletingTask}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={() => handleDeleteTask(taskToDelete.id)}
+                disabled={deletingTask}
+              >
+                {deletingTask ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-trash me-2"></i>
+                    Delete Task
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };
