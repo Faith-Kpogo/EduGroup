@@ -92,6 +92,18 @@ html {
   color: #23235b;
   margin-top: 1.2rem;
 }
+/* Password toggle inside input */
+.password-toggle-icon {
+  position: absolute;
+  top: 65%;
+  /* Adjust based on input height */
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  /* muted gray */
+  transition: color 0.2s ease-in-out;
+}
 @media (max-width: 600px) {
   .login-container {
     padding: 4vw 2vw;

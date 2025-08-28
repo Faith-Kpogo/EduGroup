@@ -214,37 +214,47 @@ const handleSelectStudent = (student) => {
   setSearchResults([]);
 };
 
-// ✅ Import CSV without selecting a course
-const handleUploadData = () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".csv,.xlsx,.xls";
-  input.onchange = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  // ✅ Import CSV without selecting a course
+  const handleUploadData = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv,.xlsx,.xls";
+    input.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await axios.post("http://localhost:5000/api/courses/import", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // store metadata and preselect course
-      localStorage.setItem("importedCourseId", String(res.data.courseId));
-      localStorage.setItem("importedCourseName", res.data.courseName || "Imported Course");
-      localStorage.setItem("importedFileName", file.name);
-      setImportedFileName(file.name);
-      setCourseId(String(res.data.courseId));
-      toast.success("File imported. Course selected automatically.");
-    } catch (err) {
-      console.error("Import failed:", err);
-      toast.error("Import failed. Ensure CSV/Excel is valid.");
-    }
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await axios.post("http://localhost:5000/api/courses/import", form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // store metadata and preselect course
+        localStorage.setItem("importedCourseId", String(res.data.courseId));
+        localStorage.setItem("importedCourseName", res.data.courseName || "Imported Course");
+        localStorage.setItem("importedFileName", file.name);
+        setImportedFileName(file.name);
+        setCourseId(String(res.data.courseId));
+        toast.success("File imported. Course selected automatically.");
+      } catch (err) {
+        console.error("Import failed:", err);
+        toast.error("Import failed. Ensure CSV/Excel is valid.");
+      }
+    };
+    input.click();
   };
-  input.click();
-};
+
+  // ✅ Clear imported file
+  const handleClearImportedFile = () => {
+    localStorage.removeItem("importedCourseId");
+    localStorage.removeItem("importedCourseName");
+    localStorage.removeItem("importedFileName");
+    setImportedFileName("");
+    setCourseId("");
+    toast.success("Imported file cleared");
+  };
 
   return (
     <MainLayout>
@@ -260,7 +270,15 @@ const handleUploadData = () => {
 
             {/* Imported file info */}
             {importedFileName && (
-              <div className="alert alert-info py-2 mb-3">Imported file: {importedFileName}</div>
+              <div className="alert alert-info py-2 mb-3 d-flex justify-content-between align-items-center">
+                <span>Imported file: {importedFileName}</span>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleClearImportedFile}
+                  title="Clear imported file"
+                ></button>
+              </div>
             )}
 
             <h5>Select Course and Students</h5>

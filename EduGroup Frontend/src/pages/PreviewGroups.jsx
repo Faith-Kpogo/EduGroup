@@ -28,6 +28,10 @@ const PreviewGroups = () => {
   const [resizing, setResizing] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
 
+  // ✅ Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     const fetchGroups = async () => {
       const token = localStorage.getItem("token");
@@ -193,11 +197,9 @@ const PreviewGroups = () => {
 
   // ✅ Delete entire batch
   const handleDeleteBatch = async () => {
-    if (!window.confirm("Are you sure you want to delete this entire course grouping?"))
-      return;
-
     const token = localStorage.getItem("token");
     try {
+      setDeleting(true);
       await axios.delete(`http://localhost:5000/api/groups/batch/${batchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -206,6 +208,9 @@ const PreviewGroups = () => {
     } catch (err) {
       console.error("Error deleting batch:", err);
       toast.error("Failed to delete batch");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -407,12 +412,64 @@ const PreviewGroups = () => {
         {/* Save + Delete buttons */}
         {groups.length > 0 && (
           <div className="d-flex justify-content-between mt-4">
-            <button className="btn btn-danger" onClick={handleDeleteBatch}>
+            <button 
+              className="btn btn-danger" 
+              onClick={() => setShowDeleteModal(true)}
+            >
+              <i className="fas fa-trash me-2"></i>
               Delete Entire Course Grouping
             </button>
             <button className="btn btn-primary" onClick={handleGoToDashboard}>
               Go to Dashboard
             </button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="delete-modal-overlay">
+            <div className="delete-modal">
+              <div className="delete-modal-header">
+                <h4>Delete Course Grouping</h4>
+              </div>
+              
+              <div className="delete-modal-body">
+                <p className="delete-warning">
+                  Are you sure you want to delete this entire course grouping?
+                </p>
+                <div className="delete-note">
+                  <i className="fas fa-info-circle me-2"></i>
+                  This action cannot be undone. All groups and their data will be permanently deleted.
+                </div>
+              </div>
+              
+              <div className="delete-modal-footer">
+                <button 
+                  className="btn btn-outline-secondary" 
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={handleDeleteBatch}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-trash me-2"></i>
+                      Delete Permanently
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

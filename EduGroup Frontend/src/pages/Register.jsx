@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User,Eye, EyeOff } from 'lucide-react';
 import Logo from '../components/Logo';
 import '../Styles/Login.css'
 
@@ -10,6 +10,8 @@ function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);       // 👈 toggle for password
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agree, setAgree] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -140,31 +142,45 @@ const handleSubmit = async (e) => {
             <div className="invalid-feedback">{errors.email}</div>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3 position-relative">
             <label className="form-label d-flex align-items-center gap-2">
               <Lock size={18} /> Password
             </label>
             <input
-              type="password"
-              className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+              type={showPassword ? "text" : "password"}
+              className={`form-control pe-5 ${errors.password ? 'is-invalid' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <span
+              className="password-toggle-icon"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </span>
             <div className="invalid-feedback">{errors.password}</div>
           </div>
 
-          <div className="mb-3">
+          {/* Confirm Password Field with Eye Icon */}
+          <div className="mb-3 position-relative">
             <label className="form-label d-flex align-items-center gap-2">
               <Lock size={18} /> Confirm Password
             </label>
             <input
-              type="password"
-              className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
+              type={showConfirmPassword ? "text" : "password"}
+              className={`form-control pe-5 ${errors.confirmPassword ? 'is-invalid' : ''}`}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            <span
+              className="password-toggle-icon"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </span>
             <div className="invalid-feedback">{errors.confirmPassword}</div>
           </div>
+          
           <div className="mb-3">
             <div className={`form-check d-flex align-items-start ${errors.agree ? 'is-invalid' : ''}`} style={{marginLeft: 0, paddingLeft: 0}}>
               <input
