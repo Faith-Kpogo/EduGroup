@@ -11,7 +11,7 @@ const GroupsHistory = () => {
   const [filteredGroups, setFilteredGroups] = useState([]);
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+
   const [timeFilter, setTimeFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const groupsPerPage = 5;
@@ -62,8 +62,7 @@ useEffect(() => {
   const searchTerm = search.toLowerCase();
   result = result.filter(
     (g) =>
-      (g.course_name && g.course_name.toLowerCase().includes(searchTerm)) ||
-      (g.status && String(g.status).toLowerCase().includes(searchTerm))
+      (g.course_name && g.course_name.toLowerCase().includes(searchTerm))
   );
 }
 
@@ -72,18 +71,7 @@ useEffect(() => {
       result = result.filter((g) => g.course_name === courseFilter);
     }
 
-    if (statusFilter !== "All") {
-  result = result.filter((g) => {
-    const status = String(g.status).toLowerCase();
-    if (statusFilter === "Active") {
-      return status === "active" || status === "1";
-    }
-    if (statusFilter === "Inactive") {
-      return status === "inactive" || status === "0";
-    }
-    return true;
-  });
-}
+
 
     if (timeFilter !== "All") {
       const now = new Date();
@@ -100,7 +88,7 @@ useEffect(() => {
 
     setFilteredGroups(result);
     setCurrentPage(1);
-  }, [search, courseFilter, statusFilter, timeFilter, groups]);
+  }, [search, courseFilter, timeFilter, groups]);
 
   // ✅ Pagination
   const indexOfLastGroup = currentPage * groupsPerPage;
@@ -180,16 +168,7 @@ const totalStudents = groups.reduce((sum, g) => sum + (g.total_students || 0), 0
                   <option key={i}>{course}</option>
                 ))}
               </select>
-              <select
-                className="form-select"
-                style={{ maxWidth: "150px" }}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option>All</option>
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
+
               <button
                 className="btn mainbtn d-flex align-items-center gap-2"
                 onClick={handleExport}

@@ -33,22 +33,50 @@ const MainLayout = ({ children }) => {
         </div>
       )}
 
-      {/* Sidebar */}
-      <div
-        className="d-none d-md-block"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          height: "100vh",
-          width: "240px",
-          zIndex: 1200,
-          background: "#fff",
-          borderRight: "1px solid #e5e7eb",
-        }}
-      >
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      </div>
+      {/* Sidebar Overlay for Mobile */}
+      {sidebarOpen && windowWidth <= 900 && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1999,
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      {windowWidth > 900 && (
+        <div
+          className="d-none d-md-block"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            width: "240px",
+            zIndex: 1200,
+            background: "#fff",
+            borderRight: "1px solid #e5e7eb",
+          }}
+        >
+          <Sidebar isOpen={true} onClose={() => {}} />
+        </div>
+      )}
+
+      {/* Mobile Sidebar */}
+      {windowWidth <= 900 && (
+        <div
+          className="position-fixed top-0 end-0 h-100"
+          style={{
+            zIndex: 2000,
+            transform: sidebarOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.3s ease',
+          }}
+        >
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        </div>
+      )}
 
       {/* Main Content */}
       <div

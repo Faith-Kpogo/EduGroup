@@ -19,7 +19,10 @@ const PreviewGroups = () => {
   const [courseName, setCourseName] = useState("");
 
   // resize controls
-  const [resizeMode, setResizeMode] = useState("studentsPerGroup");
+  const [resizeModes, setResizeModes] = useState({
+    studentsPerGroup: true,
+    numberOfGroups: false
+  });
   const [studentsPerGroup, setStudentsPerGroup] = useState("");
   const [numberOfGroups, setNumberOfGroups] = useState("");
   const [resizing, setResizing] = useState(false);
@@ -131,20 +134,37 @@ const PreviewGroups = () => {
     if (!token) return;
 
     const body = {};
-    if (resizeMode === "studentsPerGroup") {
+    
+    // Check if students per group is selected and has valid input
+    if (resizeModes.studentsPerGroup && studentsPerGroup.trim()) {
       const val = parseInt(studentsPerGroup, 10);
       if (!val || val <= 0) {
         toast.warning("Enter a valid students-per-group");
         return;
       }
       body.studentsPerGroup = val;
-    } else {
+    }
+    
+    // Check if number of groups is selected and has valid input
+    if (resizeModes.numberOfGroups && numberOfGroups.trim()) {
       const val = parseInt(numberOfGroups, 10);
       if (!val || val <= 0) {
         toast.warning("Enter a valid number of groups");
         return;
       }
       body.numberOfGroups = val;
+    }
+    
+    // Check if at least one option is selected
+    if (!resizeModes.studentsPerGroup && !resizeModes.numberOfGroups) {
+      toast.warning("Please select at least one grouping option");
+      return;
+    }
+    
+    // Check if at least one input has a value
+    if (!studentsPerGroup.trim() && !numberOfGroups.trim()) {
+      toast.warning("Please enter values for the selected options");
+      return;
     }
 
     try {
@@ -236,59 +256,119 @@ const PreviewGroups = () => {
             : 0}
         </p>
 
-        {/* Regenerate controls (toggled) */}
+        {/* Update grouping parameters (toggled) */}
         {showUpdate && (
-          <div className="bg-white rounded shadow-sm p-3 mb-3">
-            <h5 className="mb-2">Update grouping parameters</h5>
-            <div className="d-flex flex-wrap align-items-end gap-3">
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  name="resizeMode"
-                  id="modeStudentsPerGroup"
-                  checked={resizeMode === "studentsPerGroup"}
-                  onChange={() => setResizeMode("studentsPerGroup")}
-                />
-                <label className="form-check-label" htmlFor="modeStudentsPerGroup">
-                  By students per group
-                </label>
+          <div className="update-parameters-container bg-white rounded shadow-sm p-4 mb-4">
+            <div className="update-header mb-3">
+              <h5 className="mb-0 text-primary fw-bold">
+                <i className="fas fa-cog me-2"></i>
+                Update Grouping Parameters
+              </h5>
+              <p className="text-muted mb-0 small">Select one or both options to modify your groups</p>
+            </div>
+            
+            <div className="update-options">
+              {/* Students per group option */}
+              <div className="option-card mb-3 p-3 border rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="form-check">
+                    <input
+                      className="checkInput"
+                      type="checkbox"
+                      id="modeStudentsPerGroup"
+                      checked={resizeModes.studentsPerGroup}
+                      onChange={(e) => setResizeModes(prev => ({
+                        ...prev,
+                        studentsPerGroup: e.target.checked
+                      }))}
+                    />
+                    <label className="form-check-label fw-semibold" htmlFor="modeStudentsPerGroup">
+                      Students per Group
+                    </label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Enter number of students per group (e.g., 5)"
+                    value={studentsPerGroup}
+                    onChange={(e) => setStudentsPerGroup(e.target.value)}
+                    disabled={!resizeModes.studentsPerGroup}
+                    min="1"
+                  />
+                  <span className="input-group-text">students</span>
+                </div>
+                {resizeModes.studentsPerGroup && !studentsPerGroup.trim() && (
+                  <small className="text-warning">Please enter a value for students per group</small>
+                )}
               </div>
-              <input
-                type="number"
-                className="form-control"
-                style={{ maxWidth: 160 }}
-                placeholder="e.g. 5"
-                value={studentsPerGroup}
-                onChange={(e) => setStudentsPerGroup(e.target.value)}
-                disabled={resizeMode !== "studentsPerGroup"}
-              />
 
-              <div className="form-check ms-3">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  name="resizeMode"
-                  id="modeNumberOfGroups"
-                  checked={resizeMode === "numberOfGroups"}
-                  onChange={() => setResizeMode("numberOfGroups")}
-                />
-                <label className="form-check-label" htmlFor="modeNumberOfGroups">
-                  By number of groups
-                </label>
+              {/* Number of groups option */}
+              <div className="option-card mb-3 p-3 border rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="form-check">
+                    <input
+                      className="checkInput"
+                      type="checkbox"
+                      id="modeNumberOfGroups"
+                      checked={resizeModes.numberOfGroups}
+                      onChange={(e) => setResizeModes(prev => ({
+                        ...prev,
+                        numberOfGroups: e.target.checked
+                      }))}
+                    />
+                    <label className="form-check-label fw-semibold" htmlFor="modeNumberOfGroups">
+                      Number of Groups
+                    </label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Enter total number of groups (e.g., 10)"
+                    value={numberOfGroups}
+                    onChange={(e) => setNumberOfGroups(e.target.value)}
+                    disabled={!resizeModes.numberOfGroups}
+                    min="1"
+                  />
+                  <span className="input-group-text">groups</span>
+                </div>
+                {resizeModes.numberOfGroups && !numberOfGroups.trim() && (
+                  <small className="text-warning">Please enter a value for number of groups</small>
+                )}
               </div>
-              <input
-                type="number"
-                className="form-control"
-                style={{ maxWidth: 160 }}
-                placeholder="e.g. 10"
-                value={numberOfGroups}
-                onChange={(e) => setNumberOfGroups(e.target.value)}
-                disabled={resizeMode !== "numberOfGroups"}
-              />
+            </div>
 
-              <button className="btn btn-primary" onClick={handleResize} disabled={resizing}>
-                {resizing ? "Saving..." : "Save changes"}
+            <div className="update-actions d-flex gap-2 mt-3">
+              <button 
+                className="btn btn-primary px-4" 
+                onClick={handleResize} 
+                disabled={resizing || (!resizeModes.studentsPerGroup && !resizeModes.numberOfGroups)}
+              >
+                {resizing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save me-2"></i>
+                    Save Changes
+                  </>
+                )}
+              </button>
+              <button 
+                className="btn btn-outline-secondary" 
+                onClick={() => {
+                  setShowUpdate(false);
+                  setResizeModes({ studentsPerGroup: true, numberOfGroups: false });
+                  setStudentsPerGroup("");
+                  setNumberOfGroups("");
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>

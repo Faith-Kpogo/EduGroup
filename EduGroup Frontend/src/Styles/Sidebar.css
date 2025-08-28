@@ -34,3 +34,11 @@
     padding: 1rem;
     border-top: 2px solid #eee;
     background: #fff; }
+
+.sidebar-right .sidebar-links{
+    margin-top: 50px;
+    margin-bottom: 100%;
+}
+.sidebar-right .position-absolute{
+    left: -5;
+}

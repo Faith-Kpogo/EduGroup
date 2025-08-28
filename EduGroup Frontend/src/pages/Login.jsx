@@ -64,6 +64,11 @@ if (data.token) {
     if (data.first_name && data.last_name) {
       localStorage.setItem('userName', `${data.first_name} ${data.last_name}`);
     }
+    
+    // ✅ Store department if available
+    if (data.department_name) {
+      localStorage.setItem('userDepartment', data.department_name);
+    }
 
     // ✅ Store admin status
     localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');

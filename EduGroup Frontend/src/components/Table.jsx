@@ -14,14 +14,13 @@ const Table = ({ data = [] }) => {
             <th>Total Groups</th>
             <th>Total Students</th>
             <th>Date Created</th>
-            <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan="6" className="text-center">
+              <td colSpan="5" className="text-center">
                 No groups created yet. Click "Create New Group" to get started.
               </td>
             </tr>
@@ -36,7 +35,6 @@ const Table = ({ data = [] }) => {
                     ? new Date(batch.created_at).toLocaleDateString()
                     : "N/A"}
                 </td>
-                <td>{batch.status || "Active"}</td>
                 <td>
                   <button
                     className="btn btn-sm btn-primary"

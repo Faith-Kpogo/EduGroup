@@ -8,7 +8,9 @@ import {
   Edit, 
   Trash2, 
   BarChart3,
-  Search
+  Search,
+  Menu,
+  X
 } from 'lucide-react';
 import '../Styles/Admin.css';
 import axios from "axios";
@@ -18,6 +20,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Data states
   const [stats, setStats] = useState({});
@@ -51,7 +54,6 @@ const Admin = () => {
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
 
   const token = localStorage.getItem("token");
 
@@ -235,16 +237,14 @@ const Admin = () => {
     const matchesSearch = lecturer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lecturer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lecturer.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || lecturer.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.index_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const filteredGroups = groups.filter(group => {
@@ -267,26 +267,48 @@ const Admin = () => {
 
   return (
     <div className="admin-page">
-      <div className="admin-sidebar">
+      {/* Mobile Menu Button */}
+      <button 
+        className="mobile-menu-btn"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+      >
+        {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Sidebar Overlay for Mobile */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+
+      <div className={`admin-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
           <h4>Admin Panel</h4>
-          <button 
-            className="btn btn-outline-light btn-sm"
-            onClick={() => {
-              localStorage.clear();
-              navigate('/');
-            }}
-            style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}
-          >
-            Logout
-          </button>
+          <div className="sidebar-header-buttons">
+            <button 
+              className="btn btn-outline-light btn-sm"
+              onClick={() => {
+                localStorage.clear();
+                navigate('/');
+              }}
+              style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}
+            >
+              Logout
+            </button>
+            <button 
+              className="mobile-close-btn"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
         <div className="sidebar-content">
           <ul className="list-unstyled sidebar-links">
             <li className="mb-2">
               <button 
                 className={`btn btn-link text-decoration-none ${activeTab === 'dashboard' ? 'active-link' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
+                onClick={() => {
+                  setActiveTab('dashboard');
+                  setSidebarOpen(false);
+                }}
               >
                 <BarChart3 size={18} className="me-2" /> Dashboard
               </button>
@@ -294,7 +316,10 @@ const Admin = () => {
             <li className="mb-2">
               <button 
                 className={`btn btn-link text-decoration-none ${activeTab === 'lecturers' ? 'active-link' : ''}`}
-                onClick={() => setActiveTab('lecturers')}
+                onClick={() => {
+                  setActiveTab('lecturers');
+                  setSidebarOpen(false);
+                }}
               >
                 <Users size={18} className="me-2" /> Lecturers
               </button>
@@ -302,7 +327,10 @@ const Admin = () => {
             <li className="mb-2">
               <button 
                 className={`btn btn-link text-decoration-none ${activeTab === 'students' ? 'active-link' : ''}`}
-                onClick={() => setActiveTab('students')}
+                onClick={() => {
+                  setActiveTab('students');
+                  setSidebarOpen(false);
+                }}
               >
                 <GraduationCap size={18} className="me-2" /> Students
               </button>
@@ -310,7 +338,10 @@ const Admin = () => {
             <li className="mb-2">
               <button 
                 className={`btn btn-link text-decoration-none ${activeTab === 'groups' ? 'active-link' : ''}`}
-                onClick={() => setActiveTab('groups')}
+                onClick={() => {
+                  setActiveTab('groups');
+                  setSidebarOpen(false);
+                }}
               >
                 <FolderOpen size={18} className="me-2" /> Groups
               </button>
@@ -414,15 +445,6 @@ const Admin = () => {
                       className="form-control"
                     />
                   </div>
-                  <select
-                    className="form-select"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
                 </div>
                 <button className="btn btn-primary" onClick={openLecturerModal}>
                   <Plus size={18} className="me-2" />
@@ -437,7 +459,6 @@ const Admin = () => {
                       <th>Name</th>
                       <th>Email</th>
                       <th>Department</th>
-                      <th>Status</th>
                       <th>Created</th>
                       <th>Actions</th>
                     </tr>
@@ -448,11 +469,6 @@ const Admin = () => {
                         <td>{lecturer.first_name} {lecturer.last_name}</td>
                         <td>{lecturer.email}</td>
                         <td>{lecturer.department_name}</td>
-                        <td>
-                          <span className={`badge bg-${lecturer.status === 'active' ? 'success' : 'secondary'}`}>
-                            {lecturer.status}
-                          </span>
-                        </td>
                         <td>{new Date(lecturer.created_at).toLocaleDateString()}</td>
                         <td>
                           <div className="btn-group btn-group-sm">
@@ -487,15 +503,6 @@ const Admin = () => {
                       className="form-control"
                     />
                   </div>
-                  <select
-                    className="form-select"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
                 </div>
                 <button className="btn btn-primary" onClick={openStudentModal}>
                   <Plus size={18} className="me-2" />
@@ -511,7 +518,6 @@ const Admin = () => {
                       <th>Name</th>
                       <th>Gender</th>
                       <th>Email</th>
-                      <th>Status</th>
                       <th>Created</th>
                       <th>Actions</th>
                     </tr>
@@ -523,11 +529,6 @@ const Admin = () => {
                         <td>{student.first_name} {student.last_name}</td>
                         <td>{student.gender}</td>
                         <td>{student.email || '-'}</td>
-                        <td>
-                          <span className={`badge bg-${student.status === 'active' ? 'success' : 'secondary'}`}>
-                            {student.status}
-                          </span>
-                        </td>
                         <td>{new Date(student.created_at).toLocaleDateString()}</td>
                         <td>
                           <div className="btn-group btn-group-sm">
@@ -571,7 +572,6 @@ const Admin = () => {
                       <th>Course</th>
                       <th>Lecturer</th>
                       <th>Students</th>
-                      <th>Status</th>
                       <th>Created</th>
                       <th>Actions</th>
                     </tr>
@@ -583,11 +583,6 @@ const Admin = () => {
                         <td>{group.course_name || '-'}</td>
                         <td>{group.lecturer_first_name} {group.lecturer_last_name}</td>
                         <td>{group.student_count}</td>
-                        <td>
-                          <span className={`badge bg-${group.status === 'Active' ? 'success' : 'secondary'}`}>
-                            {group.status}
-                          </span>
-                        </td>
                         <td>{new Date(group.created_at).toLocaleDateString()}</td>
                         <td>
                           <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteGroup(group.id)}>

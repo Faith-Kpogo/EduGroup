@@ -138,7 +138,7 @@ exports.verifyEmail = (req, res) => {
 exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  // Admin login (hardcoded)
+  // ✅ Admin login (hardcoded)
   if (email === 'admin@edugroup.com' && password === 'admin123') {
     const token = jwt.sign(
       { id: 'admin', email: 'admin@edugroup.com', isAdmin: true },
@@ -151,11 +151,12 @@ exports.login = (req, res) => {
       first_name: 'Admin',
       last_name: 'User',
       isAdmin: true,
-      departmentSelected: false
+      departmentSelected: false,
+      department_name: null
     });
   }
 
-  // Regular user login
+  // ✅ Regular user login
   const sql = `SELECT * FROM users WHERE email = ?`;
   db.query(sql, [email], (err, results) => {
     if (err) return res.status(500).json({ message: 'Server error' });
@@ -178,20 +179,33 @@ exports.login = (req, res) => {
       { expiresIn: '1h' }
     );
 
-    const deptQuery = `SELECT * FROM user_departments WHERE user_id = ? LIMIT 1`;
+    // ✅ Now join with departments to get department name
+    const deptQuery = `
+      SELECT d.name AS department_name
+      FROM user_departments ud
+      JOIN departments d ON ud.department_id = d.id
+      WHERE ud.user_id = ?
+      LIMIT 1
+    `;
+
     db.query(deptQuery, [user.id], (deptErr, deptResults) => {
       if (deptErr) return res.status(500).json({ message: 'Error checking department' });
 
+      const department_name = deptResults.length > 0 ? deptResults[0].department_name : null;
+
       res.json({
         token,
+        email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
         isAdmin: false,
-        departmentSelected: deptResults.length > 0
+        departmentSelected: !!department_name,
+        department_name
       });
     });
   });
 };
+
 // =================== RESEND VERIFICATION ===================
 exports.resendVerification = (req, res) => {
   const { email } = req.body;

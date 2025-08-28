@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
 
   const userName = localStorage.getItem("userName");
+  const firstName = userName ? userName.split(' ')[0] : '';
   const navigate = useNavigate();
 
   // ✅ Fetch dashboard stats
@@ -136,7 +137,7 @@ const Dashboard = () => {
       <div className="d-flex flex-column flex-md-row">
         <div className="flex-grow-1 p-4 main-content">
           <h3>
-            Welcome, <span className="name">{userName}</span>
+            Welcome, <span className="name">{firstName}</span>
           </h3>
 
           {/* Dashboard Stats */}

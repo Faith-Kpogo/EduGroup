@@ -46,6 +46,29 @@ const handleContinue = async () => {
     );
 
     console.log("✅ Department selection response:", response.data);
+    
+    // Store department information in localStorage
+    let departmentName = "";
+    
+    if (response.data.department_name) {
+      departmentName = response.data.department_name;
+      localStorage.setItem('userDepartment', departmentName);
+      console.log("✅ Department stored in localStorage:", departmentName);
+    } else if (response.data.department) {
+      departmentName = response.data.department;
+      localStorage.setItem('userDepartment', departmentName);
+      console.log("✅ Department stored in localStorage:", departmentName);
+    } else {
+      console.log("❌ No department information in response");
+      console.log("Full response data:", response.data);
+    }
+    
+    // Also store the department code for future reference
+    if (selectedDepartmentCode) {
+      localStorage.setItem('userDepartmentCode', selectedDepartmentCode);
+      console.log("✅ Department code stored:", selectedDepartmentCode);
+    }
+    
     toast.success("Department selected successfully!");
     navigate('/dashboard');
   } catch (error) {
