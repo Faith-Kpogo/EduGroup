@@ -106,21 +106,60 @@ const Dashboard = () => {
       if (!token) return;
 
       try {
-        const form = new FormData();
-        form.append("file", file);
-        const res = await axios.post("http://localhost:5000/api/courses/import", form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // First, read the file to get the data
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            // Parse the file data (you'll need to implement this based on file type)
+            let data = [];
+            if (file.name.endsWith('.csv')) {
+              // Parse CSV
+              const csvText = event.target.result;
+              const lines = csvText.split('\n');
+              const headers = lines[0].split(',').map(h => h.trim());
+              data = lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim());
+                const row = {};
+                headers.forEach((header, index) => {
+                  row[header] = values[index] || '';
+                });
+                return row;
+              }).filter(row => Object.values(row).some(v => v !== ''));
+            } else {
+              // For Excel files, you might want to use a library like XLSX
+              // For now, we'll store the raw text
+              data = [{ rawData: event.target.result }];
+            }
 
-        // Save import metadata
-        localStorage.setItem("importedCourseId", String(res.data.courseId));
-        localStorage.setItem("importedCourseName", res.data.courseName || "Imported Course");
-        localStorage.setItem("importedFileName", file.name);
+            // Store the imported data
+            const userId = localStorage.getItem("userId");
+            const storeRes = await axios.post("http://localhost:5000/api/admin/imported-data/store", {
+              fileName: file.name,
+              data: data,
+              userId: userId
+            }, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
 
-        // Go to Create Groups to choose parameters
-        navigate("/creategroups");
+            // Save import metadata
+            localStorage.setItem("importedDataId", String(storeRes.data.importId));
+            localStorage.setItem("importedFileName", file.name);
+
+            // Go to Create Groups to choose parameters
+            navigate("/creategroups");
+          } catch (parseErr) {
+            console.error("File parsing failed:", parseErr);
+            window.alert("File parsing failed. Please ensure the file format is correct.");
+          }
+        };
+
+        if (file.name.endsWith('.csv')) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsText(file);
+        }
       } catch (err) {
         console.error("Import failed:", err);
         window.alert("Import failed. Please ensure the CSV/Excel file is valid.");
