@@ -1,12 +1,19 @@
 // src/pages/CheckEmail.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import Logo from "../components/Logo";
 import "../Styles/Login.css";
 
 function CheckEmail() {
   const location = useLocation();
-  const email = location.state?.email || "your email";
+  const [email, setEmail] = useState("your email");
+
+  // ✅ Prefill email if passed from login/signup
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email);
+    }
+  }, [location.state]);
 
   const handleResend = async () => {
     try {

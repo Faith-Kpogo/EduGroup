@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'; // 👈 Added icons
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Logo from '../components/Logo';
 import '../Styles/Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -8,7 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // 👈 state for toggle
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
 
@@ -51,10 +51,17 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // ✅ Redirect to verify page if backend signals it
+        if (data.requiresVerification) {
+          navigate('/check-email', { state: { email } });
+          return;
+        }
+
         setGeneralError(data.message || 'Login failed');
         return;
       }
 
+      // ✅ Save token + user info
       if (data.token) {
         localStorage.setItem('token', data.token);
         console.log("✅ Token saved to localStorage:", data.token);
@@ -71,6 +78,7 @@ const Login = () => {
 
       localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
 
+      // ✅ Redirects
       if (data.isAdmin) {
         navigate('/admin');
       } else if (data.departmentSelected) {
@@ -108,18 +116,16 @@ const Login = () => {
             <div className="invalid-feedback">{errors.email}</div>
           </div>
 
-          {/* 👇 Password with toggle */}
           <div className="mb-3 position-relative">
             <label className="form-label d-flex align-items-center gap-2">
               <Lock size={18} /> Password
             </label>
             <input
               type={showPassword ? 'text' : 'password'}
-              className={`form-control pe-5 ${errors.password ? 'is-invalid' : ''}`} // pe-5 ensures padding on right
+              className={`form-control pe-5 ${errors.password ? 'is-invalid' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {/* 👇 Eye Icon inside input */}
             <span
               className="password-toggle-icon"
               onClick={() => setShowPassword(!showPassword)}
@@ -128,7 +134,6 @@ const Login = () => {
             </span>
             <div className="invalid-feedback">{errors.password}</div>
           </div>
-
 
           <div className="mb-3 text-end">
             <a href="#" className="text-decoration-none">Forgot password?</a>

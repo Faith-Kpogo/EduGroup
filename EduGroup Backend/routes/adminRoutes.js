@@ -36,16 +36,21 @@ router.delete("/students/:studentId", adminController.deleteStudent);
 router.get("/groups", adminController.getAllGroups);
 router.delete("/groups/:groupId", adminController.deleteGroup);
 
+router.get("/departments", adminController.getAllDepartments);
+router.post("/departments", adminController.createDepartment);
+router.delete("/departments/:deptId", adminController.deleteDepartment);
+
+router.get("/courses", adminController.getAllCourses);
+router.post("/courses", adminController.createCourse);
+router.delete("/courses/:courseId", adminController.deleteCourse);
+
 // ✅ System management
 router.get("/stats", adminController.getSystemStats);
-router.get("/departments", adminController.getAllDepartments);
 router.get("/imported-data", adminController.getAllImportedData);
 router.delete("/imported-data/:importId", adminController.deleteImportedData);
 
 // ✅ Imported data storage (for users)
 router.post("/imported-data/store", adminController.storeImportedData);
 
-// ✅ Sample data creation (for testing)
-router.post("/sample-data", adminController.createSampleData);
 
 module.exports = router;

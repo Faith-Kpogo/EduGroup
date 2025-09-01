@@ -97,39 +97,63 @@
 /* Dashboard Stats */
 .dashboard-stats {
   margin-bottom: 2rem;
+  padding: 0 1rem;
+  /* Add horizontal padding to container */
+}
+
+/* Improve row spacing */
+.dashboard-stats .row {
+  margin: 0; /* remove negative margin */
 }
 
 .stat-card {
-  border-radius: 12px;
-  padding: 1.5rem;
-  height: 120px;
+  border-radius: 16px;
+  padding: 1.75rem;
+  height: 140px;
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  justify-content: flex-start;
+  gap: 1.25rem; /* spacing between icon & text */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+  transform: translateY(-6px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .stat-icon {
-  margin-right: 1rem;
-  opacity: 0.9;
+  font-size: 2rem;
+  flex-shrink: 0;
+  opacity: 0.95;
 }
 
 .stat-content h3 {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0;
-  line-height: 1;
+  margin: 0 0 0.35rem 0;
 }
 
 .stat-content p {
-  margin: 0.25rem 0 0 0;
-  opacity: 0.9;
-  font-size: 0.9rem;
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+/* Responsive: 2 per row on tablets, 1 per row on mobile */
+@media (max-width: 991.98px) {
+  .dashboard-stats .col-md-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    margin-bottom: 1rem;
+  }
+}
+@media (max-width: 575.98px) {
+  .dashboard-stats .col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
 /* Tab Content */

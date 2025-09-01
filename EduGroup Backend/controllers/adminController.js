@@ -119,10 +119,11 @@ exports.updateLecturer = (req, res) => {
   }
 
   const updateQuery = `
-    UPDATE users 
-    SET email = ?, first_name = ?, last_name = ?, department_id = ?, status = ?
-    WHERE id = ? AND role = 'teacher'
-  `;
+  UPDATE users 
+  SET email = ?, first_name = ?, last_name = ?, department_id = ?, account_active = ?
+  WHERE id = ? AND role = 'teacher'
+`;
+
 
   db.query(updateQuery, [email, firstName, lastName, departmentId, status, lecturerId], (err, result) => {
     if (err) {
@@ -601,6 +602,103 @@ exports.getAllDepartments = (req, res) => {
     res.json(results);
   });
 };
+// ✅ Create new department
+exports.createDepartment = (req, res) => {
+  const { name, code } = req.body;
+
+  if (!name || !code) {
+    return res.status(400).json({ message: "Department name and code are required" });
+  }
+
+  const query = `INSERT INTO departments (name, code) VALUES (?, ?)`;
+
+  db.query(query, [name, code], (err, result) => {
+    if (err) {
+      console.error("Error creating department:", err);
+      return res.status(500).json({ message: "Failed to create department" });
+    }
+    res.status(201).json({ message: "Department created", id: result.insertId });
+  });
+};
+
+
+// ✅ Delete department
+exports.deleteDepartment = (req, res) => {
+  const { deptId } = req.params;
+
+  const query = `DELETE FROM departments WHERE id = ?`;
+
+  db.query(query, [deptId], (err, result) => {
+    if (err) {
+      console.error("Error deleting department:", err);
+      return res.status(500).json({ message: "Failed to delete department" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.json({ message: "Department deleted successfully" });
+  });
+};
+
+// ✅ Get all courses
+exports.getAllCourses = (req, res) => {
+  const query = `
+    SELECT c.id, c.course_name, c.level, c.course_code, c.department_id, d.name as department_name
+    FROM courses c
+    LEFT JOIN departments d ON c.department_id = d.id
+    ORDER BY c.course_name
+  `;
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching courses:", err);
+      return res.status(500).json({ message: "Error fetching courses" });
+    }
+    res.json(results);
+  });
+};
+
+// ✅ Create new course
+exports.createCourse = (req, res) => {
+  const { courseName, courseCode, departmentId, level } = req.body;
+
+  if (!courseName || !courseCode || !level) {
+    return res.status(400).json({ message: "Course name, code, and level are required" });
+  }
+
+  const query = `INSERT INTO courses (course_name, course_code, department_id, level) VALUES (?, ?, ?, ?)`;
+
+  db.query(query, [courseName, courseCode, departmentId || null, level], (err, result) => {
+    if (err) {
+      console.error("Error creating course:", err);
+      return res.status(500).json({ message: "Failed to create course" });
+    }
+    res.status(201).json({ message: "Course created", id: result.insertId });
+  });
+};
+
+
+// ✅ Delete course
+exports.deleteCourse = (req, res) => {
+  const { courseId } = req.params;
+
+  const query = `DELETE FROM courses WHERE id = ?`;
+
+  db.query(query, [courseId], (err, result) => {
+    if (err) {
+      console.error("Error deleting course:", err);
+      return res.status(500).json({ message: "Failed to delete course" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.json({ message: "Course deleted successfully" });
+  });
+};
 
 // ✅ Get all imported data
 exports.getAllImportedData = (req, res) => {
@@ -673,63 +771,4 @@ exports.deleteImportedData = (req, res) => {
 
     res.json({ message: "Imported data deleted successfully" });
   });
-};
-
-// ✅ Create sample data for testing
-exports.createSampleData = async (req, res) => {
-  try {
-    console.log('Creating sample data...');
-    
-    // Create sample departments
-    const deptQuery = `INSERT IGNORE INTO departments (name) VALUES 
-      ('Computer Science'), 
-      ('Mathematics'), 
-      ('Physics'), 
-      ('Engineering')`;
-    
-    db.query(deptQuery, (err, deptResult) => {
-      if (err) {
-        console.error('Error creating departments:', err);
-        return res.status(500).json({ message: 'Error creating departments' });
-      }
-      
-      // Create sample lecturers
-      const lecturerQuery = `INSERT IGNORE INTO users (email, first_name, last_name, password_hash, role, account_active) VALUES 
-        ('john.doe@university.edu', 'John', 'Doe', ?, 'teacher', 1),
-        ('jane.smith@university.edu', 'Jane', 'Smith', ?, 'teacher', 1),
-        ('bob.wilson@university.edu', 'Bob', 'Wilson', ?, 'teacher', 1)`;
-      
-      const hashedPassword = bcrypt.hashSync('password123', 10);
-      
-      db.query(lecturerQuery, [hashedPassword, hashedPassword, hashedPassword], (err2, lecturerResult) => {
-        if (err2) {
-          console.error('Error creating lecturers:', err2);
-          return res.status(500).json({ message: 'Error creating lecturers' });
-        }
-        
-        // Create sample students
-        const studentQuery = `INSERT IGNORE INTO students (index_number, first_name, last_name, gender, email, status) VALUES 
-          ('2023001', 'Alice', 'Johnson', 'Female', 'alice.johnson@student.edu', 'active'),
-          ('2023002', 'Charlie', 'Brown', 'Male', 'charlie.brown@student.edu', 'active'),
-          ('2023003', 'Diana', 'Prince', 'Female', 'diana.prince@student.edu', 'active'),
-          ('2023004', 'Edward', 'Norton', 'Male', 'edward.norton@student.edu', 'active')`;
-        
-        db.query(studentQuery, (err3, studentResult) => {
-          if (err3) {
-            console.error('Error creating students:', err3);
-            return res.status(500).json({ message: 'Error creating students' });
-          }
-          
-          res.json({ 
-            message: 'Sample data created successfully',
-            departments: deptResult.affectedRows,
-            students: studentResult.affectedRows
-          });
-        });
-      });
-    });
-  } catch (error) {
-    console.error('Error in createSampleData:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
 };

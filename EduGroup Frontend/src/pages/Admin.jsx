@@ -8,6 +8,8 @@ import {
   Edit,
   Trash2,
   BarChart3,
+  Layers,
+  BookOpen,
   Search,
   Menu,
   X,
@@ -18,8 +20,11 @@ import {
 import "../Styles/Admin.css";
 import axios from "axios";
 import * as XLSX from "xlsx";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import { useToast } from "../components/Toast";
 
 const Admin = () => {
+  const toast = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
@@ -31,7 +36,6 @@ const Admin = () => {
   const [lecturers, setLecturers] = useState([]);
   const [students, setStudents] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [departments, setDepartments] = useState([]);
   const [importedData, setImportedData] = useState([]);
 
   // Modal states
@@ -40,6 +44,28 @@ const Admin = () => {
   const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
   const [editingLecturer, setEditingLecturer] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
+
+  // Departments
+  // Departments
+  const [departments, setDepartments] = useState([]);
+  const [newDept, setNewDept] = useState("");
+  const [newDeptCode, setNewDeptCode] = useState("");
+
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showCourseModal, setShowCourseModal] = useState(false);
+
+  const [filterDept, setFilterDept] = useState("");
+  const [filterLevel, setFilterLevel] = useState("");
+
+  // Courses
+  const [courses, setCourses] = useState([]);
+  const [newCourseName, setNewCourseName] = useState("");
+  const [newCourseCode, setNewCourseCode] = useState("");
+  const [newCourseDept, setNewCourseDept] = useState("");
+  const [newCourseLevel, setNewCourseLevel] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfig, setDeleteConfig] = useState({ type: "", id: null });
 
   // Form states
   const [lecturerForm, setLecturerForm] = useState({
@@ -97,6 +123,7 @@ const Admin = () => {
         groupsRes,
         departmentsRes,
         importedDataRes,
+        coursesRes,
       ] = await Promise.all([
         axios.get("http://localhost:5000/api/admin/stats", {
           headers: { Authorization: `Bearer ${token}` },
@@ -116,6 +143,9 @@ const Admin = () => {
         axios.get("http://localhost:5000/api/admin/imported-data", {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        axios.get("http://localhost:5000/api/admin/courses", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       setStats(statsRes.data);
@@ -124,6 +154,16 @@ const Admin = () => {
       setGroups(groupsRes.data);
       setDepartments(departmentsRes.data);
       setImportedData(importedDataRes.data);
+      setCourses(coursesRes.data);
+      console.log(
+        "Course levels:",
+        coursesRes.data.map((c) => c.level)
+      );
+      console.log(
+        "Course level types:",
+        coursesRes.data.map((c) => typeof c.level)
+      );
+      console.log("Courses:", coursesRes.data); // 🔎 inspect levels here
     } catch (err) {
       console.error("Error loading data:", err);
       setError(err.response?.data?.message || "Failed to load data");
@@ -225,21 +265,21 @@ const Admin = () => {
         const processedData = rows.map((row, index) => {
           const student = {};
           const headerMap = {
-  "index number": "indexNumber",
-  "first name": "firstName",
-  "last name": "lastName",
-  "gender": "gender",
-  "level": "level",
-  "email": "email",
-  "department": "department", // later map department name → id
-};
+            "index number": "indexNumber",
+            "first name": "firstName",
+            "last name": "lastName",
+            gender: "gender",
+            level: "level",
+            email: "email",
+            department: "department", // later map department name → id
+          };
 
-headers.forEach((header, colIndex) => {
-  const key = headerMap[header.trim().toLowerCase()];
-  if (key && row[colIndex] !== undefined) {
-    student[key] = row[colIndex];
-  }
-});
+          headers.forEach((header, colIndex) => {
+            const key = headerMap[header.trim().toLowerCase()];
+            if (key && row[colIndex] !== undefined) {
+              student[key] = row[colIndex];
+            }
+          });
 
           student.rowIndex = index + 2; // Excel row number (starting from 2)
           return student;
@@ -326,61 +366,103 @@ headers.forEach((header, colIndex) => {
     XLSX.writeFile(wb, "students_template.xlsx");
   };
 
-  const handleDeleteLecturer = async (lecturerId) => {
-    if (!window.confirm("Are you sure you want to delete this lecturer?"))
-      return;
+  const handleDeleteLecturer = (lecturerId) => {
+    console.log("Delete clicked for lecturer:", lecturerId); // <-- debug
+    setDeleteConfig({ type: "lecturer", id: lecturerId });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteStudent = (studentId) => {
+    setDeleteConfig({ type: "student", id: studentId });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteGroup = (groupId) => {
+    setDeleteConfig({ type: "group", id: groupId });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteImportedData = (importId) => {
+    setDeleteConfig({ type: "imported", id: importId });
+    setShowDeleteModal(true);
+  };
+  // ✅ Departments
+  const handleAddDepartment = async (e) => {
+    e.preventDefault();
+    if (!newDept.trim() || !newDeptCode.trim()) return;
 
     try {
-      await axios.delete(
-        `http://localhost:5000/api/admin/lecturers/${lecturerId}`,
+      await axios.post(
+        "http://localhost:5000/api/admin/departments",
+        { name: newDept, code: newDeptCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setNewDept("");
+      setNewDeptCode("");
+      setShowDeptModal(false); // ✅ close modal
+      toast.success("Department added successfully");
       loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete lecturer");
+      console.error("Error adding department:", err);
+      toast.error(err.response?.data?.message || "Failed to add department");
     }
   };
 
-  const handleDeleteStudent = async (studentId) => {
-    if (!window.confirm("Are you sure you want to delete this student?"))
-      return;
-
+  const handleDeleteDepartment = async (id) => {
     try {
-      await axios.delete(
-        `http://localhost:5000/api/admin/students/${studentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      loadData();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete student");
-    }
-  };
-
-  const handleDeleteGroup = async (groupId) => {
-    if (!window.confirm("Are you sure you want to delete this group?")) return;
-
-    try {
-      await axios.delete(`http://localhost:5000/api/admin/groups/${groupId}`, {
+      await axios.delete(`http://localhost:5000/api/admin/departments/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete group");
+      console.error("Error deleting department:", err);
+      setError(err.response?.data?.message || "Failed to delete department");
     }
   };
 
-  const handleDeleteImportedData = async (importId) => {
-    if (!window.confirm("Are you sure you want to delete this imported data?"))
+  // ✅ Courses
+  const handleAddCourse = async (e) => {
+    e.preventDefault();
+    if (
+      !newCourseName.trim() ||
+      !newCourseCode.trim() ||
+      !newCourseLevel.trim()
+    )
       return;
 
     try {
-      await axios.delete(
-        `http://localhost:5000/api/admin/imported-data/${importId}`,
+      await axios.post(
+        "http://localhost:5000/api/admin/courses",
+        {
+          courseName: newCourseName,
+          courseCode: newCourseCode,
+          departmentId: newCourseDept || null,
+          level: parseInt(newCourseLevel, 10), // ✅ ensure numeric
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setNewCourseName("");
+      setNewCourseCode("");
+      setNewCourseDept("");
+      setNewCourseLevel("");
+      setShowCourseModal(false); // ✅ close modal
+      toast.success("Course added successfully");
       loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete imported data");
+      console.error("Error adding course:", err);
+      toast.error(err.response?.data?.message || "Failed to add course");
+    }
+  };
+
+  const handleDeleteCourse = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/admin/courses/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      loadData();
+    } catch (err) {
+      console.error("Error deleting course:", err);
+      setError(err.response?.data?.message || "Failed to delete course");
     }
   };
 
@@ -394,6 +476,44 @@ headers.forEach((header, colIndex) => {
       password: "",
     });
     setShowLecturerModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfig.id) return;
+    setLoading(true);
+
+    try {
+      if (deleteConfig.type === "lecturer") {
+        await axios.delete(
+          `http://localhost:5000/api/admin/lecturers/${deleteConfig.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (deleteConfig.type === "student") {
+        await axios.delete(
+          `http://localhost:5000/api/admin/students/${deleteConfig.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (deleteConfig.type === "group") {
+        await axios.delete(
+          `http://localhost:5000/api/admin/groups/${deleteConfig.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (deleteConfig.type === "imported") {
+        await axios.delete(
+          `http://localhost:5000/api/admin/imported-data/${deleteConfig.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // Show success banner instead of alert
+      setError("");
+      loadData();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete");
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
+    }
   };
 
   const editStudent = (student) => {
@@ -466,7 +586,6 @@ headers.forEach((header, colIndex) => {
     if (selectedGender && student.gender !== selectedGender) {
       matchesSearch = false;
     }
-
 
     return matchesSearch;
   });
@@ -587,9 +706,40 @@ headers.forEach((header, colIndex) => {
                 <FolderOpen size={18} className="me-2" /> Groups
               </button>
             </li>
+
+            {/* ✅ New Departments link */}
+            <li className="mb-2">
+              <button
+                className={`btn btn-link text-decoration-none ${
+                  activeTab === "departments" ? "active-link" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("departments");
+                  setSidebarOpen(false);
+                }}
+              >
+                <Layers size={18} className="me-2" /> Departments
+              </button>
+            </li>
+
+            {/* ✅ New Courses link */}
+            <li className="mb-2">
+              <button
+                className={`btn btn-link text-decoration-none ${
+                  activeTab === "courses" ? "active-link" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("courses");
+                  setSidebarOpen(false);
+                }}
+              >
+                <BookOpen size={18} className="me-2" /> Courses
+              </button>
+            </li>
           </ul>
         </div>
       </div>
+
       <div className="admin-main-content">
         <div className="admin-container">
           <div className="d-flex justify-content-between align-items-center mb-4">
@@ -614,7 +764,7 @@ headers.forEach((header, colIndex) => {
           {activeTab === "dashboard" && (
             <div className="dashboard-stats">
               <div className="row g-4">
-                <div className="col-md-2">
+                <div className="col-md-3 col-sm-6">
                   <div className="stat-card bg-primary text-white">
                     <div className="stat-icon">
                       <Users size={32} />
@@ -625,7 +775,8 @@ headers.forEach((header, colIndex) => {
                     </div>
                   </div>
                 </div>
-                <div className="col-md-2">
+
+                <div className="col-md-3 col-sm-6">
                   <div className="stat-card bg-success text-white">
                     <div className="stat-icon">
                       <GraduationCap size={32} />
@@ -636,7 +787,8 @@ headers.forEach((header, colIndex) => {
                     </div>
                   </div>
                 </div>
-                <div className="col-md-2">
+
+                <div className="col-md-3 col-sm-6">
                   <div className="stat-card bg-info text-white">
                     <div className="stat-icon">
                       <FolderOpen size={32} />
@@ -647,7 +799,8 @@ headers.forEach((header, colIndex) => {
                     </div>
                   </div>
                 </div>
-                <div className="col-md-2">
+
+                <div className="col-md-3 col-sm-6">
                   <div className="stat-card bg-warning text-white">
                     <div className="stat-icon">
                       <BarChart3 size={32} />
@@ -913,6 +1066,139 @@ headers.forEach((header, colIndex) => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {activeTab === "departments" && (
+            <div>
+              <h3>Departments</h3>
+              <button
+                className="btn btn-primary mb-3"
+                onClick={() => setShowDeptModal(true)}
+              >
+                + Add Department
+              </button>
+
+              <ul className="list-group">
+                {departments.map((d) => (
+                  <li
+                    key={d.id}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    {d.name} ({d.code})
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDeleteDepartment(d.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {activeTab === "courses" && (
+            <div>
+              <h3>Courses</h3>
+
+              {/* Add button */}
+              <button
+                className="btn btn-primary mb-3"
+                onClick={() => setShowCourseModal(true)}
+              >
+                + Add Course
+              </button>
+
+              {/* Filters */}
+              {/* Search & Filters */}
+              <div className="d-flex gap-3 mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by name or code..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+
+                <select
+                  className="form-select"
+                  value={filterDept}
+                  onChange={(e) => setFilterDept(e.target.value)}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="form-select"
+                  value={filterLevel}
+                  onChange={(e) => setFilterLevel(e.target.value)}
+                >
+                  <option value="">All Levels</option>
+                  {[100, 200, 300, 400].map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {lvl}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtered table */}
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Level</th>
+                    <th>Department</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courses
+                    .filter((c) =>
+                      filterDept
+                        ? String(c.department_id) === String(filterDept)
+                        : true
+                    )
+                    .filter((c) =>
+                      filterLevel
+                        ? String(c.level) === String(filterLevel)
+                        : true
+                    )
+                    .filter((c) =>
+                      searchTerm
+                        ? c.course_name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          c.course_code
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())
+                        : true
+                    )
+                    .map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.course_name}</td>
+                        <td>{c.course_code}</td>
+                        <td>{c.level}</td>
+                        <td>{c.department_name || "—"}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteCourse(c.id)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -1333,8 +1619,144 @@ headers.forEach((header, colIndex) => {
               </div>
             </div>
           )}
+
+          {/* 🔥 Department Add Modal */}
+          {showDeptModal && (
+            <div className="modal-backdrop">
+              <div
+                className="modal-content bg-white p-4 rounded shadow-sm"
+                style={{ width: "400px", margin: "10% auto" }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">Add Department</h5>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowDeptModal(false)}
+                  ></button>
+                </div>
+
+                <form onSubmit={handleAddDepartment}>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Department name"
+                      value={newDept}
+                      onChange={(e) => setNewDept(e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Department code"
+                      value={newDeptCode}
+                      onChange={(e) => setNewDeptCode(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-end gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setShowDeptModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Add
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* 🔥 Course Add Modal */}
+          {showCourseModal && (
+            <div className="modal-backdrop">
+              <div
+                className="modal-content bg-white p-4 rounded shadow-sm"
+                style={{ width: "500px", margin: "5% auto" }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">Add Course</h5>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowCourseModal(false)}
+                  ></button>
+                </div>
+
+                <form onSubmit={handleAddCourse}>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Course name"
+                      value={newCourseName}
+                      onChange={(e) => setNewCourseName(e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Course code"
+                      value={newCourseCode}
+                      onChange={(e) => setNewCourseCode(e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <select
+                      className="form-select"
+                      value={newCourseDept}
+                      onChange={(e) => setNewCourseDept(e.target.value)}
+                    >
+                      <option value="">Select Department (optional)</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="Level (e.g. 100, 200)"
+                      value={newCourseLevel}
+                      onChange={(e) => setNewCourseLevel(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-end gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setShowCourseModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Add
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message="This action cannot be undone. Do you really want to delete?"
+        loading={loading}
+      />
     </div>
   );
 };

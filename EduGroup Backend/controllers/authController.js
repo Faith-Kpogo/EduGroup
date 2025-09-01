@@ -170,7 +170,11 @@ exports.login = (req, res) => {
 
     // ✅ Must be verified
     if (!user.email_verified) {
-      return res.status(403).json({ message: 'Please verify your email before logging in.' });
+      return res.status(403).json({
+        message: 'Please verify your email before logging in.',
+        requiresVerification: true,   // 👈 added flag
+        email: user.email             // 👈 send email so frontend can prefill verify page
+      });
     }
 
     const token = jwt.sign(
