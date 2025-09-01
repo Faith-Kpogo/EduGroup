@@ -1516,7 +1516,6 @@ const Admin = () => {
                             First Name, Last Name, Gender, Level, Email,
                             Department
                           </li>
-                          <li>Email and Department are optional</li>
                           <li>Gender should be: Male, Female, or Other</li>
                           <li>
                             Level should be: Level 100, Level 200, Level 300, or
@@ -1712,7 +1711,7 @@ const Admin = () => {
                       value={newCourseDept}
                       onChange={(e) => setNewCourseDept(e.target.value)}
                     >
-                      <option value="">Select Department (optional)</option>
+                      <option value="">Select Department</option>
                       {departments.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
@@ -1724,7 +1723,7 @@ const Admin = () => {
                     <input
                       type="number"
                       className="form-control"
-                      placeholder="Level (e.g. 100, 200)"
+                      placeholder="Level"
                       value={newCourseLevel}
                       onChange={(e) => setNewCourseLevel(e.target.value)}
                     />
