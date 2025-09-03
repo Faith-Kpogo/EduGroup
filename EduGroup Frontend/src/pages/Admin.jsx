@@ -128,7 +128,7 @@ const Admin = () => {
         axios.get(`${process.env.REACT_APP_API_URL}/api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(```${process.env.REACT_APP_API_URL}/api/admin/lecturers`, {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/lecturers`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get(`${process.env.REACT_APP_API_URL}/api/admin/students`, {
