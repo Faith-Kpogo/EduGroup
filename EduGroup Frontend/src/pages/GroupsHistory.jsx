@@ -21,7 +21,7 @@ useEffect(() => {
   const fetchGroups = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.get("https://edugroup.onrender.comapi/groups/history", {
+      const res = await axios.get("https://edugroup.onrender.com/api/groups/history", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

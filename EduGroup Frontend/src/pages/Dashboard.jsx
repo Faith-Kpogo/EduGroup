@@ -35,7 +35,7 @@ const Dashboard = () => {
     if (!token) return;
 
     try {
-      const res = await axios.get("https://edugroup.onrender.comapi/dashboard", {
+      const res = await axios.get("https://edugroup.onrender.com/api/dashboard", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStats(res.data);
@@ -50,7 +50,7 @@ const Dashboard = () => {
     if (!token) return;
 
     try {
-      const res = await axios.get("https://edugroup.onrender.comapi/groups/recent", {
+      const res = await axios.get("https://edugroup.onrender.com/api/groups/recent", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRecentGroups(res.data);
@@ -65,7 +65,7 @@ const Dashboard = () => {
     if (!token) return;
 
     try {
-      const res = await axios.get("https://edugroup.onrender.comapi/tasks", {
+      const res = await axios.get("https://edugroup.onrender.com/api/tasks", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTasks(res.data);
@@ -80,7 +80,7 @@ const Dashboard = () => {
 
     try {
       setDeletingTask(true);
-      await axios.delete(`https://edugroup.onrender.comapi/tasks/${taskId}`, {
+      await axios.delete(`https://edugroup.onrender.com/api/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTasks(tasks.filter((t) => t.id !== taskId));
@@ -133,7 +133,7 @@ const Dashboard = () => {
 
             // Store the imported data
             const userId = localStorage.getItem("userId");
-            const storeRes = await axios.post("https://edugroup.onrender.comapi/admin/imported-data/store", {
+            const storeRes = await axios.post("https://edugroup.onrender.com/api/admin/imported-data/store", {
               fileName: file.name,
               data: data,
               userId: userId

@@ -19,8 +19,8 @@ You should see:
 
 ### 3. **Test the Backend**
 Visit these URLs in your browser:
-- `https://edugroup.onrender.com` - Should show "Edugroup backend is working!"
-- `https://edugroup.onrender.comapi/admin/test` - Should show "Admin routes are working!"
+- `https://edugroup.onrender.com/` - Should show "Edugroup backend is working!"
+- `https://edugroup.onrender.com/api/admin/test` - Should show "Admin routes are working!"
 
 ### 4. **Test Admin Login**
 - Go to your frontend: `http://localhost:3000`

@@ -31,7 +31,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated }) => {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `https://edugroup.onrender.comapi/tasks/${task.id}`,
+        `https://edugroup.onrender.com/api/tasks/${task.id}`,
         { title, description, due_date: dueDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );

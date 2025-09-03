@@ -65,7 +65,7 @@ const handleSubmit = async (e) => {
   };
 
   try {
-    const response = await fetch('https://edugroup.onrender.comapi/auth/signup', {
+    const response = await fetch('https://edugroup.onrender.com/api/auth/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

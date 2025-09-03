@@ -23,7 +23,7 @@ const Settings = () => {
       if (!token) return;
 
       try {
-        const res = await axios.get("https://edugroup.onrender.comapi/users/me", {
+        const res = await axios.get("https://edugroup.onrender.com/api/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser({

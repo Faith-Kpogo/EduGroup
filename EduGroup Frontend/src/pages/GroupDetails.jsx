@@ -20,7 +20,7 @@ const GroupDetails = () => {
       if (!token) return;
 
       try {
-        const res = await axios.get(`https://edugroup.onrender.comapi/groups/${groupId}`, {
+        const res = await axios.get(`https://edugroup.onrender.com/api/groups/${groupId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setGroup(res.data);
@@ -64,7 +64,7 @@ const GroupDetails = () => {
     if (window.confirm("Are you sure you want to delete this group?")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(`https://edugroup.onrender.comapi/groups/${group.id}`, {
+        await axios.delete(`https://edugroup.onrender.com/api/groups/${group.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Group deleted successfully");

@@ -17,7 +17,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const token = localStorage.getItem("token");
   try {
     await axios.patch(
-      "https://edugroup.onrender.comapi/users/me/password",
+      "https://edugroup.onrender.com/api/users/me/password",
       { currentPassword, newPassword },
       { headers: { Authorization: `Bearer ${token}` } }
     );

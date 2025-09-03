@@ -40,7 +40,7 @@ const Login = () => {
     if (!validate()) return;
 
     try {
-      const response = await fetch('https://edugroup.onrender.comapi/auth/login', {
+      const response = await fetch('https://edugroup.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
