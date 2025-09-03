@@ -39,7 +39,7 @@ const PreviewGroups = () => {
 
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/groups/batch/${batchId}`,
+          `https://edugroup.onrender.comapi/groups/batch/${batchId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -65,7 +65,7 @@ const PreviewGroups = () => {
     const token = localStorage.getItem("token");
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/groups/batch/${batchId}`,
+        `https://edugroup.onrender.comapi/groups/batch/${batchId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setGroups(Array.isArray(res.data) ? res.data : []);
@@ -120,7 +120,7 @@ const PreviewGroups = () => {
     if (!token) return;
     try {
       await axios.put(
-        `http://localhost:5000/api/groups/batch/${batchId}/course-name`,
+        `https://edugroup.onrender.comapi/groups/batch/${batchId}/course-name`,
         { courseName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -174,7 +174,7 @@ const PreviewGroups = () => {
     try {
       setResizing(true);
       await axios.put(
-        `http://localhost:5000/api/groups/batch/${batchId}/resize`,
+        `https://edugroup.onrender.comapi/groups/batch/${batchId}/resize`,
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -200,7 +200,7 @@ const PreviewGroups = () => {
     const token = localStorage.getItem("token");
     try {
       setDeleting(true);
-      await axios.delete(`http://localhost:5000/api/groups/batch/${batchId}`, {
+      await axios.delete(`https://edugroup.onrender.comapi/groups/batch/${batchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Batch deleted successfully!");

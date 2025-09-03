@@ -125,25 +125,25 @@ const Admin = () => {
         importedDataRes,
         coursesRes,
       ] = await Promise.all([
-        axios.get("http://localhost:5000/api/admin/stats", {
+        axios.get("https://edugroup.onrender.comapi/admin/stats", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/lecturers", {
+        axios.get("https://edugroup.onrender.comapi/admin/lecturers", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/students", {
+        axios.get("https://edugroup.onrender.comapi/admin/students", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/groups", {
+        axios.get("https://edugroup.onrender.comapi/admin/groups", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/departments", {
+        axios.get("https://edugroup.onrender.comapi/admin/departments", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/imported-data", {
+        axios.get("https://edugroup.onrender.comapi/admin/imported-data", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://localhost:5000/api/admin/courses", {
+        axios.get("https://edugroup.onrender.comapi/admin/courses", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -178,13 +178,13 @@ const Admin = () => {
     try {
       if (editingLecturer) {
         await axios.put(
-          `http://localhost:5000/api/admin/lecturers/${editingLecturer.id}`,
+          `https://edugroup.onrender.comapi/admin/lecturers/${editingLecturer.id}`,
           lecturerForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
-          "http://localhost:5000/api/admin/lecturers",
+          "https://edugroup.onrender.comapi/admin/lecturers",
           lecturerForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -213,13 +213,13 @@ const Admin = () => {
     try {
       if (editingStudent) {
         await axios.put(
-          `http://localhost:5000/api/admin/students/${editingStudent.id}`,
+          `https://edugroup.onrender.comapi/admin/students/${editingStudent.id}`,
           studentForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
-          "http://localhost:5000/api/admin/students",
+          "https://edugroup.onrender.comapi/admin/students",
           studentForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -306,7 +306,7 @@ const Admin = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/admin/students/bulk",
+        "https://edugroup.onrender.comapi/admin/students/bulk",
         { students: bulkUploadData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -393,7 +393,7 @@ const Admin = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/admin/departments",
+        "https://edugroup.onrender.comapi/admin/departments",
         { name: newDept, code: newDeptCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -410,7 +410,7 @@ const Admin = () => {
 
   const handleDeleteDepartment = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/departments/${id}`, {
+      await axios.delete(`https://edugroup.onrender.comapi/admin/departments/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       loadData();
@@ -432,7 +432,7 @@ const Admin = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/admin/courses",
+        "https://edugroup.onrender.comapi/admin/courses",
         {
           courseName: newCourseName,
           courseCode: newCourseCode,
@@ -456,7 +456,7 @@ const Admin = () => {
 
   const handleDeleteCourse = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/courses/${id}`, {
+      await axios.delete(`https://edugroup.onrender.comapi/admin/courses/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       loadData();
@@ -485,22 +485,22 @@ const Admin = () => {
     try {
       if (deleteConfig.type === "lecturer") {
         await axios.delete(
-          `http://localhost:5000/api/admin/lecturers/${deleteConfig.id}`,
+          `https://edugroup.onrender.comapi/admin/lecturers/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "student") {
         await axios.delete(
-          `http://localhost:5000/api/admin/students/${deleteConfig.id}`,
+          `https://edugroup.onrender.comapi/admin/students/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "group") {
         await axios.delete(
-          `http://localhost:5000/api/admin/groups/${deleteConfig.id}`,
+          `https://edugroup.onrender.comapi/admin/groups/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "imported") {
         await axios.delete(
-          `http://localhost:5000/api/admin/imported-data/${deleteConfig.id}`,
+          `https://edugroup.onrender.comapi/admin/imported-data/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }

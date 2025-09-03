@@ -22,7 +22,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/tasks",
+        "https://edugroup.onrender.comapi/tasks",
         { title, description, due_date: dueDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -13,7 +13,7 @@ function ChooseDepartment() {
 
   // ✅ Fetch departments on mount
   useEffect(() => {
-    axios.get('http://localhost:5000/api/departments')
+    axios.get('https://edugroup.onrender.comapi/departments')
       .then(response => {
         setDepartments(response.data);
       })
@@ -40,7 +40,7 @@ const handleContinue = async () => {
 
   try {
     const response = await axios.post(
-      'http://localhost:5000/api/department/select',
+      'https://edugroup.onrender.comapi/department/select',
       { department_code: selectedDepartmentCode },
       { headers: { Authorization: `Bearer ${token}` } }
     );
