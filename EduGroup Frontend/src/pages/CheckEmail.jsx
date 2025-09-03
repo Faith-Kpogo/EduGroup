@@ -17,7 +17,7 @@ function CheckEmail() {
 
   const handleResend = async () => {
     try {
-      const response = await fetch("https://edugroup.onrender.com/api/auth/resend-verification", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

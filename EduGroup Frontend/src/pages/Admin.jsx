@@ -125,25 +125,25 @@ const Admin = () => {
         importedDataRes,
         coursesRes,
       ] = await Promise.all([
-        axios.get("https://edugroup.onrender.com/api/admin/stats", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/lecturers", {
+        axios.get(```${process.env.REACT_APP_API_URL}/api/admin/lecturers`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/students", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/students`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/groups", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/groups`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/departments", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/departments`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/imported-data", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/imported-data`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("https://edugroup.onrender.com/api/admin/courses", {
+        axios.get(`${process.env.REACT_APP_API_URL}/api/admin/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -178,13 +178,13 @@ const Admin = () => {
     try {
       if (editingLecturer) {
         await axios.put(
-          `https://edugroup.onrender.com/api/admin/lecturers/${editingLecturer.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/lecturers/${editingLecturer.id}`,
           lecturerForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
-          "https://edugroup.onrender.com/api/admin/lecturers",
+          `${process.env.REACT_APP_API_URL}/api/admin/lecturers`,
           lecturerForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -213,13 +213,13 @@ const Admin = () => {
     try {
       if (editingStudent) {
         await axios.put(
-          `https://edugroup.onrender.com/api/admin/students/${editingStudent.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/students/${editingStudent.id}`,
           studentForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
-          "https://edugroup.onrender.com/api/admin/students",
+          `${process.env.REACT_APP_API_URL}/api/admin/students`,
           studentForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -306,7 +306,7 @@ const Admin = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "https://edugroup.onrender.com/api/admin/students/bulk",
+        `${process.env.REACT_APP_API_URL}/api/admin/students/bulk`,
         { students: bulkUploadData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -393,7 +393,7 @@ const Admin = () => {
 
     try {
       await axios.post(
-        "https://edugroup.onrender.com/api/admin/departments",
+        `${process.env.REACT_APP_API_URL}/api/admin/departments`,
         { name: newDept, code: newDeptCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -410,7 +410,7 @@ const Admin = () => {
 
   const handleDeleteDepartment = async (id) => {
     try {
-      await axios.delete(`https://edugroup.onrender.com/api/admin/departments/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/admin/departments/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       loadData();
@@ -432,7 +432,7 @@ const Admin = () => {
 
     try {
       await axios.post(
-        "https://edugroup.onrender.com/api/admin/courses",
+        `${process.env.REACT_APP_API_URL}/api/admin/courses`,
         {
           courseName: newCourseName,
           courseCode: newCourseCode,
@@ -456,7 +456,7 @@ const Admin = () => {
 
   const handleDeleteCourse = async (id) => {
     try {
-      await axios.delete(`https://edugroup.onrender.com/api/admin/courses/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/admin/courses/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       loadData();
@@ -485,22 +485,22 @@ const Admin = () => {
     try {
       if (deleteConfig.type === "lecturer") {
         await axios.delete(
-          `https://edugroup.onrender.com/api/admin/lecturers/${deleteConfig.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/lecturers/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "student") {
         await axios.delete(
-          `https://edugroup.onrender.com/api/admin/students/${deleteConfig.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/students/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "group") {
         await axios.delete(
-          `https://edugroup.onrender.com/api/admin/groups/${deleteConfig.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/groups/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (deleteConfig.type === "imported") {
         await axios.delete(
-          `https://edugroup.onrender.com/api/admin/imported-data/${deleteConfig.id}`,
+          `${process.env.REACT_APP_API_URL}/api/admin/imported-data/${deleteConfig.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }

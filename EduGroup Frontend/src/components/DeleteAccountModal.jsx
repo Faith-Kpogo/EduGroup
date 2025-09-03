@@ -20,7 +20,7 @@ const DeleteAccountModal = ({ isOpen, onClose, userEmail }) => {
 
     try {
       setLoading(true);
-      await axios.delete("https://edugroup.onrender.com/api/users/me", {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/users/me`, {
   headers: { Authorization: `Bearer ${token}` },
   data: { email: emailInput }  // ✅ send email
 });

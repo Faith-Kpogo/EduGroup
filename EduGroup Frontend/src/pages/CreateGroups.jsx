@@ -52,7 +52,7 @@ const CreateGroups = () => {
       if (!token) return;
 
       try {
-        let url = "https://edugroup.onrender.com/api/courses";
+        let url = `${process.env.REACT_APP_API_URL}/api/courses`;
         if (level) {
           url += `?level=${level}`;
         }
@@ -127,7 +127,7 @@ const CreateGroups = () => {
 
     try {
       const res = await axios.post(
-        "https://edugroup.onrender.com/api/groups/generate",
+        `${process.env.REACT_APP_API_URL}/api/groups/generate`,
         {
           courseId,
           studentsPerGroup: studentsPerGroup ? parseInt(studentsPerGroup) : null,
@@ -155,7 +155,7 @@ const CreateGroups = () => {
     if (!courseId) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.get(`https://edugroup.onrender.com/api/courses/${courseId}/students`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/courses/${courseId}/students`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAllStudents(res.data); // should return [{id, index_number, first_name, last_name}, ...]
@@ -173,7 +173,7 @@ useEffect(() => {
     const token = localStorage.getItem("token");
     try {
       const res = await axios.get(
-        `https://edugroup.onrender.com/api/courses/${courseId}/students`,
+      `${process.env.REACT_APP_API_URL}/api/courses/${courseId}/students`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAllStudents(res.data);
@@ -228,7 +228,7 @@ const handleSelectStudent = (student) => {
       try {
         const form = new FormData();
         form.append("file", file);
-        const res = await axios.post("https://edugroup.onrender.com/api/courses/import", form, {
+        const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/courses/import`, form, {
           headers: { Authorization: `Bearer ${token}` },
         });
         // store metadata and preselect course

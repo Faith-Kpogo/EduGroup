@@ -17,7 +17,7 @@ import VerifyFailed from "./pages/VerifyFailed";
 
 function App() {
    useEffect(() => {
-    fetch('https://edugroup.onrender.com/')  // backend URL
+    fetch(`${process.env.REACT_APP_API_URL}/`)  // backend URL
       .then(res => res.text())
       .then(data => {
         console.log('Response from backend:', data);
