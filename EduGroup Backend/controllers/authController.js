@@ -5,8 +5,8 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
+const CLIENT_URL = process.env.CLIENT_URL || "https://edugroup-frontend.netlify.app";
+const SERVER_URL = process.env.SERVER_URL || "https://edugroup-backend.onrender.com";
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
